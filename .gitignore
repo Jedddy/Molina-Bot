@@ -1,0 +1,12 @@
+# Virtual Environtment
+.venv
+
+# pycache
+__pycache__
+
+# Misc
+styling.txt
+token.env
+styling.txt
+*og.txt
+*wn.png
