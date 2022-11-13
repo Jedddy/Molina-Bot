@@ -1,4 +1,5 @@
 import discord
+import time
 from datetime import datetime
 from humanfriendly import format_timespan
 
@@ -34,8 +35,8 @@ def filtered_words() -> list[str]:
 def embed_blueprint(guild: discord.Guild) -> discord.Embed:
     """Returns an discord.Embed blueprint that has time, server name and color"""
 
-    time = datetime.now()
-    time = time.strftime("%B %d, %Y")
+    _time = datetime.now()
     embed = discord.Embed(color=0xE60283)
-    embed.set_footer(text=f"{guild.name} | {time}")
+    embed.set_footer(text=f"{guild.name}")
+    embed.timestamp = _time
     return embed
