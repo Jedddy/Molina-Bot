@@ -105,7 +105,7 @@ class Misc(commands.Cog):
 
         embed = embed_blueprint(ctx.guild)
         await update_config(ctx.guild.id, "commandPrefix", pfx)
-        embed.description = f"**Set commands prefix to {pfx}**"
+        embed.description = f"**✅ Set commands prefix to {pfx}**"
         await ctx.send(embed=embed)
 
 async def setup(bot: commands.Bot):

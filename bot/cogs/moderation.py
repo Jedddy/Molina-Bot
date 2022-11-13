@@ -47,8 +47,10 @@ class Moderation(commands.Cog):
     
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
-        if not message.author.bot:
-            try:
+        try:
+            if not await self.executor.check_if_exists("userlogs", "user_id", message.author.id):
+                await self.executor.insert_member(message.author.id)
+            if not message.author.bot:
                 # Checks if user is either admin, or whitelisted
                 checker = any([await self.executor.in_whilelist(role.id) for role in message.author.roles])
                 if await self.cog_check(message) or checker:
@@ -60,8 +62,6 @@ class Moderation(commands.Cog):
                             await message.delete()
                         except discord.errors.NotFound:
                             pass
-                    if not await self.executor.check_if_exists("userlogs", "user_id", message.author.id):
-                        await self.executor.insert_member(message.author.id)
                     profan_count = await self.executor.profanity_counter(message.author.id)
                     for word in self.filters:
                         if word in message.content.lower():
@@ -78,8 +78,9 @@ class Moderation(commands.Cog):
                                 await message.author.add_roles(role)
                                 await asyncio.sleep(1800)
                                 await message.author.remove_roles(role)
-            except AttributeError:
+        except AttributeError:
                 pass
+            
 
     @commands.Cog.listener()
     async def on_member_ban(self, guild, user: discord.User):
@@ -251,14 +252,17 @@ class Moderation(commands.Cog):
         embed.title = f"**Viewing Mod Logs for {member}**"
         embed.set_thumbnail(url=member.avatar.url)
         user_logs = await self.executor.view_modlogs(member.id)
-        user_logs.pop("profanity_count")
-        embed.add_field(
-            name="User ID",
-            value=user_logs.pop("user_id"),
-            inline=False
-            )
-        desc = (f"{name[:-6].title()} count: {value}\n" for name, value in user_logs.items())
-        embed.description = f"```yaml\n{''.join(desc)}\n```"
+        if user_logs:
+            user_logs.pop("profanity_count")
+            embed.add_field(
+                name="User ID",
+                value=user_logs.pop("user_id"),
+                inline=False
+                )
+            desc = (f"{name[:-6].title()} count: {value}\n" for name, value in user_logs.items())
+            embed.description = f"```yaml\n{''.join(desc)}\n```"
+        else:
+            embed.description = "**No logs yet.**"
         await ctx.send(embed=embed)
 
     @commands.command()
@@ -270,7 +274,7 @@ class Moderation(commands.Cog):
         await update_config(ctx.guild.id, "modLogChannel", ctx.channel.id)
         await ctx.send(embed=embed)
 
-    @commands.command
+    @commands.command()
     async def timeout(self, ctx: commands.Context, member: discord.Member, duration: str):
         """Time out a member"""
 

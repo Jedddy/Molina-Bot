@@ -1,7 +1,6 @@
 import os
 import discord
 import dotenv
-import json
 from config.config import get_config
 from discord.ext import commands
 
@@ -17,7 +16,7 @@ class Molina(commands.Bot):
             **kwargs
             )
 
-    async def get_prefix(self, message: discord.Message):
+    async def get_prefix(self, message: discord.Message) -> str:
         pfx = await get_config(message.guild.id, "commandPrefix")
         return pfx or "?"
 
