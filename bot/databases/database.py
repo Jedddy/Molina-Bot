@@ -79,3 +79,14 @@ class ModerationDB:
         if count:
             return True
         return False
+
+    async def remove_whitelist(self, role_id: int) -> None:
+        """Removes role in whitelist database"""
+
+        conn = await self.db.acquire()
+        async with conn.transaction():
+            await self.db.execute(f"""
+                DELETE FROM whitelisted WHERE role_id = $1;
+            """, role_id)
+        await self.db.release(conn)
+
