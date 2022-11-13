@@ -6,7 +6,7 @@ import discord
 import re
 from datetime import timedelta
 from discord.ext import commands
-from utils.database import ModerationDB
+from databases.database import ModerationDB
 from utils.helper import parse, filtered_words, embed_blueprint
 from config.config import get_config, update_config
 
@@ -49,15 +49,17 @@ class Moderation(commands.Cog):
     async def on_message(self, message: discord.Message):
         if not message.author.bot:
             try:
+                # Checks if user is either admin, or whitelisted
                 checker = any([await self.executor.in_whilelist(role.id) for role in message.author.roles])
                 if await self.cog_check(message) or checker:
                     pass
                 else:
                     link_check = re.compile(r"(https?:\/\/)?(www\.)?(discord\.(gg|io|me|li)|discordapp\.com\/invite)\/.+[a-z]")
                     if any((link_check.match(msg)) for msg in message.content.split()):
-                        await message.delete()
-                    if message.author == self.bot.user:
-                        return
+                        try:
+                            await message.delete()
+                        except discord.errors.NotFound:
+                            pass
                     if not await self.executor.check_if_exists("userlogs", "user_id", message.author.id):
                         await self.executor.insert_member(message.author.id)
                     profan_count = await self.executor.profanity_counter(message.author.id)
@@ -109,14 +111,14 @@ class Moderation(commands.Cog):
         embed.description = f"**Message edited in {before.channel}**"
         embed.add_field(
             name="Info",
-            value=f"```yaml\nbefore: {before.content}\nafter: {after.content}\nauthor: {before.author}\nauthor id: {before.author.id}```",
+            value=f"**Before**: {before.content}\n**After**: {after.content}\n```yaml\nauthor: {before.author}\nauthor id: {before.author.id}```",
         )
         embed.add_field(
             name="Actual message:",
             value=f"[Jump to message]({after.jump_url})",
             inline=False
         )
-        embed.set_thumbnail(url=before.author.avatar.url)
+        embed.set_thumbnail(url=before.author.display_avatar)
         await self.send_to_modlog(before.guild, embed=embed)
 
     @commands.Cog.listener()
@@ -127,9 +129,9 @@ class Moderation(commands.Cog):
         embed.description = f"**Message deleted in {message.channel}**"
         embed.add_field(
             name="Info",
-            value=f"```yaml\nmessage: {message.content}\nauthor: {message.author}\nauthor id: {message.author.id}\nmessage id: {message.id}```"
+            value=f"**Message**: {message.content}\n```yaml\nauthor: {message.author}\nauthor id: {message.author.id}\nmessage id: {message.id}```"
         )
-        embed.set_thumbnail(url=message.author.avatar.url)
+        embed.set_thumbnail(url=message.author.display_avatar)
         await self.send_to_modlog(message.guild, embed=embed)
 
     @commands.command()
@@ -259,6 +261,15 @@ class Moderation(commands.Cog):
         embed.description = f"```yaml\n{''.join(desc)}\n```"
         await ctx.send(embed=embed)
 
+    @commands.command()
+    async def setmodlog(self, ctx: commands.Context):
+        """Sets modlog channel"""
+
+        embed = embed_blueprint(ctx.guild)
+        embed.description = f"**Mod logs channel set to {ctx.channel.name}**"
+        await update_config(ctx.guild.id, "modLogChannel", ctx.channel.id)
+        await ctx.send(embed=embed)
+
     @commands.command
     async def timeout(self, ctx: commands.Context, member: discord.Member, duration: str):
         """Time out a member"""
@@ -271,15 +282,16 @@ class Moderation(commands.Cog):
         await self.executor.update_db("mute_count", member.id)
 
     @commands.command()
-    async def whitelist(self, ctx: commands.Context, role: int):
+    async def whitelist(self, ctx: commands.Context, role: int | discord.Role):
         """Whitelists a role"""
 
         embed = embed_blueprint(guild=ctx.guild)
-        role = ctx.guild.get_role(role)
+        if isinstance(role, int):
+            role = ctx.guild.get_role(role)
         if role:
-            embed.description = f"**{role.name} added to automod whitelist.**"
             if not await self.executor.in_whilelist(role.id):
                 await self.executor.insert_whitelist(role.id)
+                embed.description = f"**{role.name} added to automod whitelist.**"
                 await ctx.send(embed=embed)
                 return
             else:
@@ -290,13 +302,19 @@ class Moderation(commands.Cog):
         await ctx.send(embed=embed)
 
     @commands.command()
-    async def setmodlog(self, ctx: commands.Context):
-        """Sets modlog channel"""
-
-        embed = embed_blueprint(ctx.guild)
-        embed.description = f"**Mod logs channel set to {ctx.channel.name}**"
-        await update_config(ctx.guild.id, "modLogChannel", ctx.channel.id)
-        await ctx.send(embed=embed)
+    async def unwhitelist(self, ctx: commands.Context, role: int | discord.Role):
+        """Removes a role from whitelist"""
+        
+        embed = embed_blueprint(guild=ctx.guild)
+        if isinstance(role, int):
+            role = ctx.guild.get_role(role)
+        if role:
+            if await self.executor.in_whilelist(role.id):
+                await self.executor.remove_whitelist(role.id)
+                embed.description = f"**Removed {role} from database.**"
+            else:
+                embed.description = f"**{role} may not be in whitelist.**"
+            await ctx.send(embed=embed)
 
 
 async def setup(bot: commands.Bot):
