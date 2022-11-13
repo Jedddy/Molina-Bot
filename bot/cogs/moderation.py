@@ -63,7 +63,10 @@ class Moderation(commands.Cog):
                     profan_count = await self.executor.profanity_counter(message.author.id)
                     for word in self.filters:
                         if word in message.content.lower():
-                            await message.delete()
+                            try:
+                                await message.delete()
+                            except discord.errors.NotFound:
+                                pass
                             await self.executor.update_db("profanity_count", message.author.id)
                             if profan_count % 10 == 0 and profan_count > 0:
                                 await message.channel.send(f"Please avoid using profane words {message.author.mention}. You have been warned.")
@@ -100,11 +103,18 @@ class Moderation(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message_edit(self, before: discord.Message, after: discord.Message):
+        if before.author.bot:
+            return
         embed = embed_blueprint(before.guild)
-        embed.description = f"**Message edited in {before.channel.name}**"
+        embed.description = f"**Message edited in {before.channel}**"
         embed.add_field(
             name="Info",
-            value=f"```yaml\nbefore: {before.content}\nafter: {after.content}\nauthor: {before.author}```",
+            value=f"```yaml\nbefore: {before.content}\nafter: {after.content}\nauthor: {before.author}\nauthor id: {before.author.id}```",
+        )
+        embed.add_field(
+            name="Actual message:",
+            value=f"[Jump to message]({after.jump_url})",
+            inline=False
         )
         embed.set_thumbnail(url=before.author.avatar.url)
         await self.send_to_modlog(before.guild, embed=embed)
@@ -114,10 +124,10 @@ class Moderation(commands.Cog):
         if message.author.bot:
             return
         embed = embed_blueprint(guild=message.guild)
-        embed.description = f"**Message deleted in {message.channel.name}**"
+        embed.description = f"**Message deleted in {message.channel}**"
         embed.add_field(
             name="Info",
-            value=f"```yaml\nmessage: {message.content}\nauthor: {message.author}```"
+            value=f"```yaml\nmessage: {message.content}\nauthor: {message.author}\nauthor id: {message.author.id}\nmessage id: {message.id}```"
         )
         embed.set_thumbnail(url=message.author.avatar.url)
         await self.send_to_modlog(message.guild, embed=embed)
@@ -261,16 +271,23 @@ class Moderation(commands.Cog):
         await self.executor.update_db("mute_count", member.id)
 
     @commands.command()
-    async def whitelist(self, ctx: commands.Context, role: discord.Role):
+    async def whitelist(self, ctx: commands.Context, role: int):
         """Whitelists a role"""
 
         embed = embed_blueprint(guild=ctx.guild)
-        embed.description = f"{role.name} added to automod whitelist."
-        if not await self.executor.in_whilelist(role.id):
-            await self.executor.insert_whitelist(role.id)
-            await ctx.send(embed=embed)
-        else:
-            await ctx.send(f"{role} may already be whitelisted.")
+        role = ctx.guild.get_role(role)
+        if role:
+            embed.description = f"**{role.name} added to automod whitelist.**"
+            if not await self.executor.in_whilelist(role.id):
+                await self.executor.insert_whitelist(role.id)
+                await ctx.send(embed=embed)
+                return
+            else:
+                embed.description = f"**{role} may already be whitelisted.**"
+                await ctx.send(embed=embed)
+                return
+        embed.description = f"**Role does not exist.**"
+        await ctx.send(embed=embed)
 
     @commands.command()
     async def setmodlog(self, ctx: commands.Context):

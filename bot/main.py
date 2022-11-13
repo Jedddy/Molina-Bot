@@ -1,6 +1,7 @@
 import os
 import discord
 import dotenv
+import json
 from discord.ext import commands
 
 dotenv.load_dotenv("bot/token.env")
@@ -21,6 +22,7 @@ class Molina(commands.Bot):
         print(f"{self.user} is ready.")
         
     async def setup_hook(self) -> None:
+        # Load cogs
         for cogs in os.listdir("bot/cogs"):
             if cogs.endswith(".py"):
                 await self.load_extension(f"cogs.{cogs[:-3]}")

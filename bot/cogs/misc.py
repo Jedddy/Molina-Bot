@@ -15,6 +15,10 @@ class Misc(commands.Cog):
     @commands.has_guild_permissions(administrator=True)
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
+        # Mainly for sticky messages
+
+        if message.author.id == self.bot.user.id:
+            return
         channel = await get_config(message.guild.id, "stickiedMessages")
         if not channel:
             return
@@ -32,34 +36,54 @@ class Misc(commands.Cog):
 
         except discord.errors.NotFound:
             pass
-    
+
+    @commands.Cog.listener()
+    async def on_message_delete(self, message: discord.Message):
+        """Also mainly for stickied messages"""
+
+        channel = await get_config(message.guild.id, "stickiedMessages")
+        if not channel:
+            return
+        
+        stickied_message = channel.get(str(message.channel.id), None)
+        if message.id == stickied_message[1]:
+            await delete_config(message.guild.id, "stickiedMessages", inner_key=str(message.channel.id))
+
     @commands.has_guild_permissions(administrator=True)
     @commands.command()
     async def stick(self, ctx: commands.Context, *, message: str):
+        """Sticks a piece of message on the channel"""
+
         bot_msg = await ctx.send(message)
         await update_config(ctx.guild.id, "stickiedMessages", {str(ctx.channel.id): [ctx.channel.id, bot_msg.id]})
 
-    @commands.has_guild_permissions(administrator=True)
-    @commands.command()
-    async def rmstick(self, ctx: commands.Context):
-        sticky_channel = await get_config(ctx.guild.id, "stickiedMessages")
-        if not sticky_channel:
-            return
+    # @commands.has_guild_permissions(administrator=True)
+    # @commands.command()
+    # async def rmstick(self, ctx: commands.Context):
+    #     sticky_channel = await get_config(ctx.guild.id, "stickiedMessages")
+    #     if not sticky_channel:
+    #         await ctx.send("There are currently no stickied messages.")
+    #         await asyncio.sleep(5)
+    #         await msg.delete()
+    #         return
 
-        sticky_channel_id = sticky_channel.get(str(ctx.channel.id))
-        if sticky_channel_id[0] != ctx.channel.id:
-            msg = await ctx.send("Please go to the same channel with the sticky message.")
-            await asyncio.sleep(5)
-            await msg.delete()
-            return
+    #     sticky_channel_id = sticky_channel.get(str(ctx.channel.id))
+    #     if sticky_channel_id[0] != ctx.channel.id:
+    #         msg = await ctx.send("Please go to the same channel with the sticky message.")
+    #         await asyncio.sleep(5)
+    #         await msg.delete()
+    #         return
 
-        await delete_config(ctx.guild.id, "stickiedMessages", inner_key=str(ctx.channel.id))
-        msg = await ctx.send("Deleted! ✅")
-        await asyncio.sleep(4)
-        await msg.delete()
+    #     await delete_config(ctx.guild.id, "stickiedMessages", inner_key=str(ctx.channel.id))
+    #     await ctx.message.delete()
+    #     msg = await ctx.send("Removed! ✅ You can now safely remove the stickied message.")
+    #     await asyncio.sleep(5)
+    #     await msg.delete()
 
     @commands.command()
     async def remindme(self, ctx: commands.Context, time: str, *, reminder: str):
+        """Will remind you on dms after your specified time."""
+        
         rmdr = ''.join([rm for rm in reminder])
         embed = embed_blueprint(ctx.guild)
         embed.description = f"**Hello!, You told me to remind you about {rmdr}!**\n**See message here:**\n{ctx.message.jump_url}"
