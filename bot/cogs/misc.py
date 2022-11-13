@@ -41,6 +41,9 @@ class Misc(commands.Cog):
     async def on_message_delete(self, message: discord.Message):
         """Also mainly for stickied messages"""
 
+        if not message.author.bot:
+            return
+
         channel = await get_config(message.guild.id, "stickiedMessages")
         if not channel:
             return
@@ -48,7 +51,7 @@ class Misc(commands.Cog):
         stickied_message = channel.get(str(message.channel.id), None)
         if not stickied_message:
             return
-            
+
         if message.id == stickied_message[1]:
             await delete_config(message.guild.id, "stickiedMessages", inner_key=str(message.channel.id))
 
