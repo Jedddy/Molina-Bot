@@ -98,6 +98,15 @@ class Misc(commands.Cog):
         await asyncio.sleep(time[0])
         await ctx.author.send(embed=embed)
 
+    @commands.has_guild_permissions(administrator=True)
+    @commands.command()
+    async def prefix(self, ctx: commands.Context, pfx: str):
+        """Change default commands prefix"""
+
+        embed = embed_blueprint(ctx.guild)
+        await update_config(ctx.guild.id, "commandPrefix", pfx)
+        embed.description = f"**Set commands prefix to {pfx}**"
+        await ctx.send(embed=embed)
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(Misc(bot))
