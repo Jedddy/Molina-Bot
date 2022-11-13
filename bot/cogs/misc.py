@@ -46,6 +46,9 @@ class Misc(commands.Cog):
             return
         
         stickied_message = channel.get(str(message.channel.id), None)
+        if not stickied_message:
+            return
+            
         if message.id == stickied_message[1]:
             await delete_config(message.guild.id, "stickiedMessages", inner_key=str(message.channel.id))
 
