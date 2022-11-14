@@ -137,12 +137,19 @@ class AutoMod(commands.Cog):
         await send_to_modlog(ctx, embed=embed, configtype="botLogChannel")
 
     @commands.Cog.listener()
-    async def on_member_join(self):
-        pass
+    async def on_raw_member_join(self, member: discord.Member):
+        ctx = await self.bot.get_context(member)
+        embed = embed_blueprint(ctx.guild)
+        embed.set_thumbnail(url=member.display_avatar)
+        await send_to_modlog(ctx, embed=embed, configtype="botLogChannel")
 
     @commands.Cog.listener()
-    async def on_member_remove(self):
-        pass
+    async def on_raw_member_remove(self, member: discord.Member):
+        ctx = await self.bot.get_context(member)
+        embed = embed_blueprint(ctx.guild)
+        embed.set_thumbnail(url=member.display_avatar)
+        embed.set_thumbnail(url=member.display_avatar)
+        await send_to_modlog(ctx, embed=embed, configtype="botLogChannel")
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(AutoMod(bot))
