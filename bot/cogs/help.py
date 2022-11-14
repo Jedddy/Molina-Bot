@@ -1,5 +1,6 @@
 import discord
 from discord.ext import commands
+from config.config import get_config
 from typing import Mapping, Optional, List, Any
 
 class Help(commands.HelpCommand):
@@ -22,9 +23,11 @@ class Help(commands.HelpCommand):
         await self.get_destination().send(embed=embed)
 
     async def send_command_help(self, cmd: commands.Command):
+        guild_id = self.get_destination().guild.id
+        prefix = await get_config(guild_id, "commandPrefix")
         desc = \
         f"name: {cmd.name}\ncategory: {cmd.cog_name}\ndescription:\n {cmd.help or cmd.short_doc}\n\n" \
-        f"usage: {cmd.name} {cmd.signature}"
+        f"usage: {prefix}{cmd.name} {cmd.signature}"
 
         embed = discord.Embed(
             title=f"Command info: {cmd.qualified_name}",

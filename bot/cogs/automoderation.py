@@ -56,11 +56,11 @@ class AutoMod(commands.Cog):
                             try:
                                 await message.delete()
                                 automod = embed_blueprint(ctx.guild)
-                                embed.add_field(
+                                automod.add_field(
                                     name="Info",
                                     value=f"**Message**: {message.content}\n```yaml\nauthor: {message.author}\nauthor id: {message.author.id}\nmessage id: {message.id}```"
                                 )
-                                embed.set_thumbnail(url=message.author.display_avatar)
+                                automod.set_thumbnail(url=message.author.display_avatar)
                                 await send_to_modlog(ctx, embed=automod, configtype="autoModLogs", reason="Automod")
                             except discord.errors.NotFound:
                                 pass
@@ -148,8 +148,8 @@ class AutoMod(commands.Cog):
         ctx = await self.bot.get_context(member)
         embed = embed_blueprint(ctx.guild)
         embed.set_thumbnail(url=member.display_avatar)
-        embed.set_thumbnail(url=member.display_avatar)
         await send_to_modlog(ctx, embed=embed, configtype="botLogChannel")
+
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(AutoMod(bot))
