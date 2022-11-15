@@ -267,7 +267,7 @@ class Moderation(commands.Cog):
         roles = await self.executor.view_whitelist()
         if not roles:
             embed.description = "**Nothing to show.**"
-            await ctx.send(embed)
+            await ctx.send(embed=embed)
             return
         checks = []
         for role in roles:
