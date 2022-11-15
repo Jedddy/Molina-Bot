@@ -9,7 +9,6 @@ from databases.database import ModerationDB
 from utils.helper import parse, send_to_modlog, embed_blueprint
 from config.config import update_config, get_config, delete_config
 
-user, passw, db = os.getenv("user"), os.getenv("password"), os.getenv("db") 
 
 class Moderation(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
@@ -26,8 +25,7 @@ class Moderation(commands.Cog):
         
     @commands.Cog.listener()
     async def on_ready(self):
-        self.db = await asyncpg.create_pool(database=db, user=user, password=passw)
-        self.executor = ModerationDB(self.db)
+        self.executor = ModerationDB()
         await self.executor.create_tables()
         self.err_logger = logging.basicConfig(filename="bot/logs/mod_cog.txt", level=logging.ERROR)
         self.locked_channels = {}

@@ -9,7 +9,6 @@ from databases.database import ModerationDB
 from discord.ext import commands
 from utils.helper import embed_blueprint, send_to_modlog
 
-user, passw, db = os.getenv("user"), os.getenv("password"), os.getenv("db") 
 
 class AutoMod(commands.Cog):
     def __init__(self, bot: commands.Bot):
@@ -25,8 +24,7 @@ class AutoMod(commands.Cog):
 
     @commands.Cog.listener()
     async def on_ready(self):
-        self.db = await asyncpg.create_pool(database=db, user=user, password=passw)
-        self.executor = ModerationDB(self.db)
+        self.executor = ModerationDB()
         await self.executor.create_tables()
         self.err_logger = logging.basicConfig(filename="bot/logs/automod_cog.txt", level=logging.ERROR)
         self.filters = filtered_words()

@@ -1,92 +1,109 @@
-import asyncpg
+import aiosqlite as aiosql
 import discord
+import asyncio
 
 class ModerationDB:
-    def __init__(self, db: asyncpg.Pool):
-        self.db = db
+    db_path = "bot/databases/mlbbmembers.db"
+    def __init__(self):
+        pass
 
     async def create_tables(self) -> None:
-        await self.db.execute("""
-            CREATE TABLE IF NOT EXISTS userlogs (
-                user_id BIGINT PRIMARY KEY,
-                mute_count INT DEFAULT 0,
-                warn_count INT DEFAULT 0,
-                kick_count INT DEFAULT 0,
-                ban_count INT DEFAULT 0,
-                profanity_count INT DEFAULT 0);
-
-            CREATE TABLE IF NOT EXISTS whitelisted (
-                id SERIAL PRIMARY KEY,
-                role_id BIGINT
-                );
-            """)
+        async with aiosql.connect(self.db_path) as db:
+            await db.execute("""
+                CREATE TABLE IF NOT EXISTS userlogs (
+                    user_id INTEGER PRIMARY KEY,
+                    mute_count INTEGER DEFAULT 0 NOT NULL,
+                    warn_count INTEGER DEFAULT 0 NOT NULL,
+                    kick_count INTEGER DEFAULT 0 NOT NULL,
+                    ban_count INTEGER DEFAULT 0 NOT NULL,
+                    profanity_count INTEGER DEFAULT 0 NOT NULL);
+                """)
+            await db.execute("""
+             CREATE TABLE IF NOT EXISTS whitelisted (
+                    role_id INTEGER PRIMARY KEY
+                    );""")
 
     async def check_if_exists(self, table, column, _id: int) -> bool:
-        check = await self.db.execute(f"""
-            SELECT * FROM {table} WHERE {column} = $1
-        """, _id)
-        return bool(int(check[7:]))
+        async with aiosql.connect(self.db_path) as db:
+            check = await db.execute(f"""
+                SELECT * FROM {table} WHERE {column} = ?
+            """, (_id,))
+            check = await check.fetchall()
+            return bool(check)
 
     async def insert_member(self, user_id: discord.Member.id) -> None:
         """Inserts data to the table"""
-        conn = await self.db.acquire()
-        async with conn.transaction():
-            await self.db.execute("""
-                INSERT INTO userlogs VALUES ($1)
-            """, user_id)
-        await self.db.release(conn)
+        
+        async with aiosql.connect(self.db_path) as db:
+            await db.execute("""
+                INSERT INTO userlogs(user_id) VALUES (?);
+            """, (user_id,))
+            await db.commit()
+            return
 
     async def insert_whitelist(self, role_id: int) -> None:
-        if not await self.check_if_exists("whitelisted", "role_id", role_id):
-            conn = await self.db.acquire()
-            async with conn.transaction():
-                await self.db.execute("""
-                    INSERT INTO whitelisted (role_id) VALUES ($1)
-                """, role_id)
-            await self.db.release(conn)
+        async with aiosql.connect(self.db_path) as db:
+            await db.execute("""
+                    INSERT INTO whitelisted (role_id) VALUES (?);
+                """, (role_id,))
+            await db.commit()
 
     async def update_db(self, column: str, user_id: int) -> None:
         """Updates user logs"""
-        conn = await self.db.acquire()
-        async with conn.transaction():
-            await self.db.execute(f"""
-                UPDATE userlogs SET {column} = {column} + 1 WHERE user_id = $1;
-            """, user_id)
-        await self.db.release(conn)
+
+        async with aiosql.connect(self.db_path) as db:
+            await db.execute(f"""
+                UPDATE userlogs SET {column} = {column} + 1 WHERE user_id = ?;
+            """, (user_id,))
+            await db.commit()
 
     async def profanity_counter(self, user_id: str) -> int:
         """Counts profanity words sent by user"""
 
-        count = await self.db.fetchrow("""
-            SELECT profanity_count FROM userlogs WHERE user_id = $1;
-        """, user_id)
-        return dict(count)["profanity_count"]
+        async with aiosql.connect(self.db_path) as db:
+            count = await db.execute("""
+            SELECT profanity_count FROM userlogs WHERE user_id = ?;
+        """, (user_id,))
+            count = await count.fetchone()
+        return count[0]
 
     async def view_modlogs(self, user_id: int) -> dict[str, str]:
         """View useds mod logs"""
 
-        user_logs = await self.db.fetchrow("""
-            SELECT * FROM userlogs WHERE user_id = $1;
-        """, user_id)
-        return dict(user_logs)
+        async with aiosql.connect(self.db_path) as db:
+            user_logs = await db.execute("""
+                SELECT * FROM userlogs WHERE user_id = ?;
+            """, (user_id,))
+            rows = await user_logs.fetchone()
+            d = {
+                "user_id": rows[0],
+                "mute_count": rows[1],
+                "warn_count": rows[2],
+                "kick_count": rows[3],
+                "ban_count": rows[4],
+                "profanity_count": rows[5]
+            }
+            return d
 
     async def in_whilelist(self, role_id: int) -> bool:
         """Check if role is in whitelist"""
-
-        count = await self.db.fetchrow("""
-            SELECT * FROM whitelisted WHERE role_id = $1;
-        """, role_id)
-        if count:
-            return True
-        return False
+        async with aiosql.connect(self.db_path) as db:
+            count = await db.execute("""
+                SELECT * FROM whitelisted WHERE role_id = ?;
+            """, (role_id,))
+            count = await count.fetchone()
+            if count:
+                return True
+            return False
 
     async def remove_whitelist(self, role_id: int) -> None:
         """Removes role in whitelist database"""
 
-        conn = await self.db.acquire()
-        async with conn.transaction():
-            await self.db.execute(f"""
-                DELETE FROM whitelisted WHERE role_id = $1;
-            """, role_id)
-        await self.db.release(conn)
+        async with aiosql.connect(self.db_path) as db:
+            await db.execute(f"""
+                DELETE FROM whitelisted WHERE role_id = ?;
+            """, (role_id,))
+            await db.commit()
+
+
 
