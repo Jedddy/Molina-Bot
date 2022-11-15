@@ -137,6 +137,8 @@ class AutoMod(commands.Cog):
     async def on_member_join(self, member: discord.Member):
         chnl = await get_config(member.guild.id, "botLogChannel")
         chnl = self.bot.get_channel(chnl)
+        if not chnl:
+            return
         embed = embed_blueprint(chnl.guild)
         embed.set_thumbnail(url=member.display_avatar)
         embed.description = f"**{member} joined. | {member.id}**"
@@ -146,6 +148,8 @@ class AutoMod(commands.Cog):
     async def on_raw_member_remove(self, payload: discord.RawMemberRemoveEvent):
         guild = self.bot.get_guild(payload.guild_id)
         chnl = await get_config(guild.id, "botLogChannel")
+        if not chnl:
+            return
         chnl = self.bot.get_channel(chnl)
         embed = embed_blueprint(guild)
         embed.set_thumbnail(url=payload.user.display_avatar)
