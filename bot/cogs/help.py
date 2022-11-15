@@ -3,6 +3,7 @@ from discord.ext import commands
 from config.config import get_config
 from typing import Mapping, Optional, List, Any
 
+
 class Help(commands.HelpCommand):
     hidden_cogs = ("ErrorHandler", "AutoMod")
 
