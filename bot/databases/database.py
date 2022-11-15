@@ -40,13 +40,6 @@ class ModerationDB:
             await db.commit()
             return
 
-    async def insert_whitelist(self, role_id: int) -> None:
-        async with aiosql.connect(self.db_path) as db:
-            await db.execute("""
-                    INSERT INTO whitelisted (role_id) VALUES (?);
-                """, (role_id,))
-            await db.commit()
-
     async def update_db(self, column: str, user_id: int) -> None:
         """Updates user logs"""
 
@@ -84,6 +77,13 @@ class ModerationDB:
             }
             return d
 
+    async def insert_whitelist(self, role_id: int) -> None:
+        async with aiosql.connect(self.db_path) as db:
+            await db.execute("""
+                    INSERT INTO whitelisted (role_id) VALUES (?);
+                """, (role_id,))
+            await db.commit()
+
     async def in_whilelist(self, role_id: int) -> bool:
         """Check if role is in whitelist"""
         async with aiosql.connect(self.db_path) as db:
@@ -104,5 +104,12 @@ class ModerationDB:
             """, (role_id,))
             await db.commit()
 
-
-
+    async def view_whitelist(self):
+        """View whitelist"""
+        
+        async with aiosql.connect(self.db_path) as db:
+            whitelists = await db.execute(f"""
+                SELECT * FROM whitelisted;
+            """)
+            roles = await whitelists.fetchall()
+            return roles
