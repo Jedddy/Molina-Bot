@@ -36,5 +36,5 @@ class Molina(commands.Bot):
             if cogs.endswith(".py"):
                 await self.load_extension(f"cogs.{cogs[:-3]}")
 
-molina = Molina(application_id='1040074864763088978')
+molina = Molina()
 molina.run(token)
