@@ -50,17 +50,14 @@ class AutoMod(commands.Cog):
                     profan_count = await self.executor.profanity_counter(message.author.id)
                     for word in self.filters:
                         if word in message.content.lower():
-                            try:
-                                await message.delete()
-                                automod = embed_blueprint(ctx.guild)
-                                automod.add_field(
-                                    name="Info",
-                                    value=f"**Message**: {message.content}\n```yaml\nauthor: {message.author}\nauthor id: {message.author.id}\nmessage id: {message.id}```"
-                                )
-                                automod.set_thumbnail(url=message.author.display_avatar)
-                                await send_to_modlog(ctx, embed=automod, configtype="autoModLogs", reason="Automod")
-                            except discord.errors.NotFound:
-                                pass
+                            await message.delete()
+                            automod = embed_blueprint(ctx.guild)
+                            automod.add_field(
+                                name="Info",
+                                value=f"**Message**: {message.content}\n```yaml\nauthor: {message.author}\nauthor id: {message.author.id}\nmessage id: {message.id}```"
+                            )
+                            automod.set_thumbnail(url=message.author.display_avatar)
+                            await send_to_modlog(ctx, embed=automod, configtype="autoModLogs", reason="Automod")
                             await self.executor.update_db("profanity_count", message.author.id)
                             if profan_count % 10 == 0 and profan_count > 0:
                                 await message.channel.send(f"Please avoid using profane words {message.author.mention}. You have been warned.")
@@ -73,7 +70,7 @@ class AutoMod(commands.Cog):
                                 await send_to_modlog(ctx, embed=embed, configtype="autoModLogs", reason="Automod")
                                 await asyncio.sleep(1800)
                                 await message.author.remove_roles(role)
-        except AttributeError:
+        except (AttributeError, discord.errors.NotFound) as e:
             pass
     
     @commands.Cog.listener()
