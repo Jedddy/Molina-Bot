@@ -1,5 +1,7 @@
-Multiple Locked Channels
 Welcome Messages (with image)
+Modlog IMAGES
 Economy System
 Fun Commands
 Giveaway Channels
+
+Add SERVER foreign key on MODLOGS

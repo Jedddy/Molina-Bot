@@ -139,7 +139,7 @@ class AutoMod(commands.Cog):
         chnl = self.bot.get_channel(chnl)
         embed = embed_blueprint(chnl.guild)
         embed.set_thumbnail(url=member.display_avatar)
-        embed.description = f"**{member} joined.**"
+        embed.description = f"**{member} joined. | {member.id}**"
         await chnl.send(embed=embed)
 
     @commands.Cog.listener()
@@ -149,7 +149,7 @@ class AutoMod(commands.Cog):
         chnl = self.bot.get_channel(chnl)
         embed = embed_blueprint(guild)
         embed.set_thumbnail(url=payload.user.display_avatar)
-        embed.description = f"**{payload.user} left.**"
+        embed.description = f"**{payload.user} left. | {payload.user.id}**"
         await chnl.send(embed=embed)
 
 async def setup(bot: commands.Bot):
