@@ -1,6 +1,5 @@
 import aiosqlite as aiosql
 import discord
-import asyncio
 
 class ModerationDB:
     db_path = "bot/databases/mlbbmembers.db"

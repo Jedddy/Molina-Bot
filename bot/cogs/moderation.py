@@ -1,7 +1,5 @@
 import asyncio
 import logging
-import os
-import asyncpg
 import discord
 from datetime import timedelta
 from discord.ext import commands

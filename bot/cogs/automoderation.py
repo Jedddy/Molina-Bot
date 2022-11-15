@@ -1,7 +1,5 @@
 import discord
-import asyncpg
 import logging
-import os
 import re
 import asyncio
 from utils.helper import filtered_words
