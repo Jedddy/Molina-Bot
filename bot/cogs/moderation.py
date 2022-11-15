@@ -230,33 +230,24 @@ class Moderation(commands.Cog):
         await send_to_modlog(ctx, embed=embed, configtype="modLogChannel", reason=reason, moderation=True)
 
     @commands.command()
-    async def whitelist(self, ctx: commands.Context, role: int | discord.Role):
+    async def whitelist(self, ctx: commands.Context, role: discord.Role):
         """Whitelists a role"""
 
         embed = embed_blueprint(ctx.guild)
-        if isinstance(role, int):
-            role = ctx.guild.get_role(role)
         if role:
             if not await self.executor.in_whilelist(role.id):
                 await self.executor.insert_whitelist(role.id)
                 embed.description = f"**{role.name} added to automod whitelist.**"
-                await ctx.send(embed=embed)
                 await send_to_modlog(ctx, embed=embed, configtype="modLogChannel", moderation=True)
-                return
             else:
                 embed.description = f"**{role} may already be whitelisted.**"
-                await ctx.send(embed=embed)
-                return
-        embed.description = f"**Role does not exist.**"
         await ctx.send(embed=embed)
 
     @commands.command()
-    async def unwhitelist(self, ctx: commands.Context, role: int | discord.Role):
+    async def unwhitelist(self, ctx: commands.Context, role: discord.Role):
         """Removes a role from whitelist"""
         
         embed = embed_blueprint(ctx.guild)
-        if isinstance(role, int):
-            role = ctx.guild.get_role(role)
         if role:
             if await self.executor.in_whilelist(role.id):
                 await self.executor.remove_whitelist(role.id)
@@ -265,6 +256,26 @@ class Moderation(commands.Cog):
             else:
                 embed.description = f"**{role} may not be in whitelist.**"
             await ctx.send(embed=embed)
+
+    @commands.command()
+    async def seewhitelist(self, ctx: commands.Context):
+        """View whitelist in this server"""
+
+        checker = discord.utils.get
+        embed = embed_blueprint(ctx.guild)
+        embed.title = f"Viewing whitelisted roles for {ctx.guild.name}"
+        roles = await self.executor.view_whitelist()
+        if not roles:
+            embed.description = "**Nothing to show.**"
+            await ctx.send(embed)
+            return
+        checks = []
+        for role in roles:
+            if checker(ctx.guild.roles, id=role[0]):
+                checks.append(checker(ctx.guild.roles, id=role[0]))
+        embed.description = "\n".join((f"{num}. **{r.name}**" for num, r in enumerate(checks, start=1)))
+        await ctx.send(embed=embed)
+
 
 
 async def setup(bot: commands.Bot):
