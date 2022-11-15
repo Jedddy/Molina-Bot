@@ -6,6 +6,7 @@ from utils.helper import filtered_words
 from databases.database import ModerationDB
 from discord.ext import commands
 from utils.helper import embed_blueprint, send_to_modlog
+from config.config import get_config
 
 
 class AutoMod(commands.Cog):
@@ -133,19 +134,23 @@ class AutoMod(commands.Cog):
         await send_to_modlog(ctx, embed=embed, configtype="botLogChannel")
 
     @commands.Cog.listener()
-    async def on_raw_member_join(self, member: discord.Member):
-        ctx = await self.bot.get_context(member)
-        embed = embed_blueprint(ctx.guild)
+    async def on_member_join(self, member: discord.Member):
+        chnl = await get_config(member.guild.id, "botLogChannel")
+        chnl = self.bot.get_channel(chnl)
+        embed = embed_blueprint(chnl.guild)
         embed.set_thumbnail(url=member.display_avatar)
-        await send_to_modlog(ctx, embed=embed, configtype="botLogChannel")
+        embed.description = f"**{member} joined.**"
+        await chnl.send(embed=embed)
 
     @commands.Cog.listener()
-    async def on_raw_member_remove(self, member: discord.Member):
-        ctx = await self.bot.get_context(member)
-        embed = embed_blueprint(ctx.guild)
-        embed.set_thumbnail(url=member.display_avatar)
-        await send_to_modlog(ctx, embed=embed, configtype="botLogChannel")
-
+    async def on_raw_member_remove(self, payload: discord.RawMemberRemoveEvent):
+        guild = self.bot.get_guild(payload.guild_id)
+        chnl = await get_config(guild.id, "botLogChannel")
+        chnl = self.bot.get_channel(chnl)
+        embed = embed_blueprint(guild)
+        embed.set_thumbnail(url=payload.user.display_avatar)
+        embed.description = f"**{payload.user} left.**"
+        await chnl.send(embed=embed)
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(AutoMod(bot))
