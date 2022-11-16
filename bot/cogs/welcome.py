@@ -18,6 +18,7 @@ class Welcome(commands.Cog):
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload: discord.RawReactionActionEvent):
         """Gives a role based on a reaction emoji."""
+        
         self.verification_message_id = await get_config(self.server_id, "verifyMessageID")
         self.role_id = await get_config(self.server_id, "verifiedRoleID")
         if payload.emoji.id != self.emoji.id:

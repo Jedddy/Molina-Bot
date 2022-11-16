@@ -5,7 +5,7 @@ from datetime import datetime
 from humanfriendly import format_timespan
 
 
-async def parse(time: str) -> tuple[int, str]:
+async def parse(time: str | int | float) -> tuple[int, str]:
     """Parses time from string"""
     time_dict = {
         "d": 86400,
@@ -13,17 +13,19 @@ async def parse(time: str) -> tuple[int, str]:
         "m": 60,
         "s": 1
     }
-    s = 0 # Time in seconds
-    temp = ""
-    for i in time:
-        if i.isdigit():
-            temp += i
-        elif i.lower() in ["d", "h", "m", "s"]:
-            s += time_dict[i] * int(temp)
-            temp = ""
-    
-    message = format_timespan(s)
-    return s, message
+    if isinstance(time, str):
+        s = 0 # Time in seconds
+        temp = ""
+        for i in time:
+            if i.isdigit():
+                temp += i
+            elif i.lower() in ["d", "h", "m", "s"]:
+                s += time_dict[i] * int(temp)
+                temp = ""
+    else:
+        s = time
+    text = format_timespan(s)
+    return s, text
 
 
 def filtered_words() -> list[str]:

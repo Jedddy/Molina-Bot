@@ -1,11 +1,11 @@
 import discord
-import logging
 import re
 import asyncio
+import datetime
 from utils.helper import filtered_words
 from databases.database import ModerationDB
 from discord.ext import commands
-from utils.helper import embed_blueprint, send_to_modlog
+from utils.helper import embed_blueprint, send_to_modlog, parse
 from config.config import get_config
 
 
@@ -138,6 +138,14 @@ class AutoMod(commands.Cog):
         embed = embed_blueprint(chnl.guild)
         embed.set_thumbnail(url=member.display_avatar)
         embed.description = f"**{member} joined. | {member.id}**"
+        account_age = member.created_at.timestamp()
+        date_now = datetime.datetime.now()
+        t = abs(account_age - date_now.timestamp())
+        formatted_time = await parse(t)
+        embed.add_field(
+            name="Account age",
+            value=formatted_time[1]
+        )
         await chnl.send(embed=embed)
 
     @commands.Cog.listener()
