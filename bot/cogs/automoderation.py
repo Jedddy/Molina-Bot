@@ -25,7 +25,6 @@ class AutoMod(commands.Cog):
     async def on_ready(self):
         self.executor = ModerationDB()
         await self.executor.create_tables()
-        self.err_logger = logging.basicConfig(filename="bot/logs/automod_cog.txt", level=logging.ERROR)
         self.filters = filtered_words()
 
     @commands.Cog.listener()

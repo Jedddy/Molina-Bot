@@ -1,5 +1,6 @@
 import os
 import discord
+import logging
 import dotenv
 from config.config import get_config
 from discord.ext import commands
@@ -27,6 +28,9 @@ class Molina(commands.Bot):
         print(f"{self.user} is ready.")
         
     async def setup_hook(self) -> None:
+        
+        # Load logger
+        logging.basicConfig(filename="bot/logs/logs.txt", level=logging.ERROR)
         # Load cogs
         if not self.synced:
             await self.tree.sync()

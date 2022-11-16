@@ -25,7 +25,7 @@ class ErrorHandler(commands.Cog):
             await asyncio.sleep(20)
             await error_message.delete()
         else:
-            logger = logging.getLogger()
+            logger = logging.getLogger(__name__)
             logger.error(error)
     pass
     
