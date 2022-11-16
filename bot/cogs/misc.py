@@ -1,6 +1,6 @@
 import discord
 import asyncio
-import os
+from typing import Union, Optional
 from discord.ext import commands
 from utils.helper import embed_blueprint, parse
 from config.config import get_config, update_config, delete_config
@@ -59,30 +59,8 @@ class Misc(commands.Cog):
         """Sticks a piece of message on the channel"""
 
         bot_msg = await ctx.send(message)
+        await ctx.message.delete()
         await update_config(ctx.guild.id, "stickiedMessages", [bot_msg.channel.id, bot_msg.id], inner=True, inner_key=str(ctx.channel.id))
-
-    # @commands.has_guild_permissions(administrator=True)
-    # @commands.command()
-    # async def rmstick(self, ctx: commands.Context):
-    #     sticky_channel = await get_config(ctx.guild.id, "stickiedMessages")
-    #     if not sticky_channel:
-    #         await ctx.send("There are currently no stickied messages.")
-    #         await asyncio.sleep(5)
-    #         await msg.delete()
-    #         return
-
-    #     sticky_channel_id = sticky_channel.get(str(ctx.channel.id))
-    #     if sticky_channel_id[0] != ctx.channel.id:
-    #         msg = await ctx.send("Please go to the same channel with the sticky message.")
-    #         await asyncio.sleep(5)
-    #         await msg.delete()
-    #         return
-
-    #     await delete_config(ctx.guild.id, "stickiedMessages", inner_key=str(ctx.channel.id))
-    #     await ctx.message.delete()
-    #     msg = await ctx.send("Removed! ✅ You can now safely remove the stickied message.")
-    #     await asyncio.sleep(5)
-    #     await msg.delete()
 
     @commands.command()
     async def remindme(self, ctx: commands.Context, time: str, *, reminder: str):
@@ -105,6 +83,28 @@ class Misc(commands.Cog):
         await update_config(ctx.guild.id, "commandPrefix", pfx)
         embed.description = f"**✅ Set commands prefix to {pfx}**"
         await ctx.send(embed=embed)
+
+    @commands.has_guild_permissions(administrator=True)
+    @commands.command()
+    async def announce(self, ctx: commands.Context, keyword: Union[discord.TextChannel, str], 
+                        variant: Optional[Union[discord.Role, discord.TextChannel]] = None, 
+                        channel: Optional[discord.TextChannel] = None, *, message: str):
+        """Send an announcement to a specified channel"""
+        
+        mention = None
+        embed = embed_blueprint(ctx.guild)
+        if isinstance(keyword, discord.TextChannel):
+            ctx = keyword
+        elif isinstance(keyword, str):
+            if keyword.lower() == "everyone":
+                mention = ctx.guild.default_role
+                ctx = variant
+            elif keyword.lower() == "role":
+                mention = variant.mention
+                ctx = channel
+        embed.description = message
+        await ctx.send(mention, embed=embed)
+
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(Misc(bot))
