@@ -11,23 +11,19 @@ class ErrorHandler(commands.Cog):
         embed = embed_blueprint(ctx.guild)
         if isinstance(error, commands.MissingRequiredArgument):
             embed.description = f"```Missing argument! -> <{error.param.name}>```"
-            error_message = await ctx.send(embed=embed)
-            await asyncio.sleep(20)
-            await error_message.delete()
-        if isinstance(error, commands.MemberNotFound):
+        elif isinstance(error, commands.MemberNotFound):
             embed.description = f"```Member not found! -> <{error.argument}>```"
-            error_message = await ctx.send(embed=embed)
-            await asyncio.sleep(20)
-            await error_message.delete()
-        if isinstance(error, commands.RoleNotFound):
+        elif isinstance(error, commands.RoleNotFound):
             embed.description = f"```Role not found! -> <{error.argument}>```"
-            error_message = await ctx.send(embed=embed)
-            await asyncio.sleep(20)
-            await error_message.delete()
+        elif isinstance(error, commands.ChannelNotFound):
+            embed.description = f"```Channel not found! -> <{error.argument}>```"
         else:
-            logger = logging.getLogger(__name__)
-            logger.error(error)
-    pass
+            embed.description = f"```An error has occured.```"
+        error_message = await ctx.send(embed=embed)
+        await asyncio.sleep(20)
+        await error_message.delete()
+        logger = logging.getLogger(__name__)
+        logger.error(error)
     
 
 async def setup(bot: commands.Bot):
