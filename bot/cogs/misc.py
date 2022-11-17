@@ -107,7 +107,14 @@ class Misc(commands.Cog):
                 ctx = channel
         embed.description = message
         await ctx.send(mention, embed=embed)
+    
+    @commands.command()
+    async def ping(self, ctx: commands.Context):
+        """Sends the bot's latency"""
 
+        embed = embed_blueprint(ctx.guild)
+        embed.description = f"**Pong! ✅ {round(self.bot.latency * 1000)}ms**"
+        await ctx.send(embed=embed)
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(Misc(bot))
