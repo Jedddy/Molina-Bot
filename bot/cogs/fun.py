@@ -10,7 +10,7 @@ class Fun(commands.Cog):
         super().__init__()
 
     @commands.command(aliases=["8ball"])
-    async def ball(self, ctx: commands.Context):
+    async def ball(self, ctx: commands.Context, question: str):
         """Makes the bot answer your question"""
 
         answers = (
