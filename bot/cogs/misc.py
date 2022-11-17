@@ -90,9 +90,12 @@ class Misc(commands.Cog):
                         variant: Optional[Union[discord.Role, discord.TextChannel]] = None, 
                         channel: Optional[discord.TextChannel] = None, *, message: str):
         """Send an announcement to a specified channel"""
-        
+
         mention = None
         embed = embed_blueprint(ctx.guild)
+        image = ctx.message.attachments
+        if image and image[0].content_type[:5] == "image":
+            embed.set_image(url=image[0].url)
         if isinstance(keyword, discord.TextChannel):
             ctx = keyword
         elif isinstance(keyword, str):
