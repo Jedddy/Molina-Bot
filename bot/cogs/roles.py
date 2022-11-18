@@ -9,6 +9,9 @@ class Roles(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
         super().__init__()
+
+    async def cog_check(self, ctx: commands.Context):
+        return ctx.author.guild_permissions.administrator
     
     @commands.command()
     async def role(self, ctx: commands.Context, member: discord.Member, role: discord.Role):
