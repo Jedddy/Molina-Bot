@@ -20,6 +20,7 @@ class Roles(commands.Cog):
         else:
             embed.description = f"**Added {role} to {member}**"
             await member.add_roles(role)
+            await send_to_modlog(ctx, embed=embed, configtype="modLogChannel", moderation=True)
         await ctx.send(embed=embed)
 
     @commands.command()
@@ -63,14 +64,15 @@ class Roles(commands.Cog):
         await role.edit(name=name)
         embed.description = f"**Changed role name from \"{past_name}\" to \"{name}\"**"
         await ctx.send(embed=embed)
+        await send_to_modlog(ctx, embed=embed, configtype="modLogChannel", moderation=True)
 
     @commands.command()
     async def rolecolor(self, ctx: commands.Context, role: discord.Role, color: str):
         """Changes role color"""
         
         embed = embed_blueprint(ctx.guild)
-        if color.isdigit() and len(color) < 7:
-            color = f"#{color}"
+        if len(color) < 7:
+            color = f"#{color}" 
         color_check = re.search(r'^#(?:[0-9a-fA-F]{3}){1,2}$', color)
         if color_check:
             past_color = role.color
@@ -79,6 +81,7 @@ class Roles(commands.Cog):
         else:
             embed.description = f"**Could not read color hex.**"
         await ctx.send(embed=embed)
+        await send_to_modlog(ctx, embed=embed, configtype="modLogChannel", moderation=True)
 
     @commands.command()
     async def addrole(self, ctx: commands.Context, *, name: str, color_hex = None):
@@ -105,18 +108,17 @@ class Roles(commands.Cog):
         await ctx.guild.create_role(name=name, color=discord.colour.parse_hex_number(color), permissions=perms)
         embed.description = f"**Created role {name} ✅**"
         await ctx.send(embed=embed)
+        await send_to_modlog(ctx, embed=embed, configtype="modLogChannel", moderation=True)
 
     @commands.command()
     async def delrole(self, ctx: commands.Context, role: discord.Role):
         """Deletes a role"""
 
         embed = embed_blueprint(ctx.guild)
-        if role.is_default:
-            embed.description = "**Cannot delete this role!**"
-        else:
-            embed.description = f"**Deleted {role.name} ✅**"
-            await role.delete()
+        embed.description = f"**Deleted {role.name} ✅**"
+        await role.delete()
         await ctx.send(embed=embed)
+        await send_to_modlog(ctx, embed=embed, configtype="modLogChannel", moderation=True)
 
 
 async def setup(bot: commands.Bot):
