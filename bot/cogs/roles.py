@@ -39,10 +39,8 @@ class Roles(commands.Cog):
             await member.add_roles(role)
             await send_to_modlog(ctx, embed=embed, configtype="modLogChannel", moderation=True)
         await ctx.send(embed=embed)
-        self.ongoing_temprole.append(1)
         await asyncio.sleep(time[0])
         await member.remove_roles(role)
-        self.ongoing_temprole.pop()
 
     @commands.command()
     async def roles(self, ctx: commands.Context):
