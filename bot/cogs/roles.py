@@ -1,8 +1,8 @@
 import discord
 import re
+import asyncio
 from discord.ext import commands
-from utils.helper import send_to_modlog
-from utils.helper import embed_blueprint
+from utils.helper import send_to_modlog, embed_blueprint, parse
 
 
 class Roles(commands.Cog):
@@ -25,6 +25,24 @@ class Roles(commands.Cog):
             await member.add_roles(role)
             await send_to_modlog(ctx, embed=embed, configtype="modLogChannel", moderation=True)
         await ctx.send(embed=embed)
+
+    @commands.command()
+    async def temprole(self, ctx: commands.Context, member: discord.Member, role: discord.Role, time: str):
+        """Adds a role to a member temporarily"""
+
+        time = await parse(time)
+        embed = embed_blueprint(ctx.guild)
+        if member.get_role(role.id):
+            embed.description = f"**{member} already has this role!**"
+        else:
+            embed.description = f"**Added {role} to {member} for {time[1]}**"
+            await member.add_roles(role)
+            await send_to_modlog(ctx, embed=embed, configtype="modLogChannel", moderation=True)
+        await ctx.send(embed=embed)
+        self.ongoing_temprole.append(1)
+        await asyncio.sleep(time[0])
+        await member.remove_roles(role)
+        self.ongoing_temprole.pop()
 
     @commands.command()
     async def roles(self, ctx: commands.Context):
@@ -122,6 +140,7 @@ class Roles(commands.Cog):
         await role.delete()
         await ctx.send(embed=embed)
         await send_to_modlog(ctx, embed=embed, configtype="modLogChannel", moderation=True)
+
 
 
 async def setup(bot: commands.Bot):
