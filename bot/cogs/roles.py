@@ -27,7 +27,7 @@ class Roles(commands.Cog):
         """Check all roles in the server"""
         
         embed = embed_blueprint(ctx.guild)
-        embed.description = f"**Viewing all roles in {ctx.guild.name} - {ctx.guild.roles.count()} roles**\n\n"
+        embed.description = f"**Viewing all roles in {ctx.guild.name} - {len(ctx.guild.roles)} roles**\n\n"
         embed.description += "\n".join((role.mention for role in ctx.guild.roles))
         await ctx.send(embed=embed)
 
