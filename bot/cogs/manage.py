@@ -9,6 +9,9 @@ class Management(commands.Cog):
         self.bot = bot
         super().__init__()
 
+    async def cog_check(self, ctx: commands.Context):
+        return ctx.author.guild_permissions.administrator
+
     @commands.Cog.listener()
     async def on_ready(self):
         self.executor = ModerationDB()
