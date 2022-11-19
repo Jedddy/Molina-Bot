@@ -57,7 +57,6 @@ class Management(commands.Cog):
         Rank roles mentions that aren't inside party channels will be warned
         """
 
-        print(roles)
         parsed = ""
         for item in roles.split():
             if item.startswith("<"):
