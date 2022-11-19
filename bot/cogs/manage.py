@@ -20,18 +20,21 @@ class Management(commands.Cog):
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
         embed = embed_blueprint(message.guild)
-        container = await self.executor.rank_roles_and_party_channels() # returns a tuple with two lists
-        channels = container[1] # returns [(id,), (id,)] same for container[0]
-        for role in container[0]:
-            if f"<@&{role[0]}>" in message.content and message.channel.id not in (c[0] for c in channels)\
-                and message.channel.id not in (f.id for f in message.guild.forums):
+        try:
+            container = await self.executor.rank_roles_and_party_channels() # returns a tuple with two lists
+            channels = container[1] # returns [(id,), (id,)] same for container[0]
+            for role in container[0]:
+                if f"<@&{role[0]}>" in message.content and message.channel.id not in (c[0] for c in channels)\
+                    and message.channel.id not in (f.id for f in message.guild.forums):
 
-                chnls = '\n'.join((f'<#{c[0]}>' for c in channels))
-                embed.description = f"{message.author.mention}, If you want to find players to play with, Please go ahead on one of these channels:\n\
-                    {chnls}"
+                    chnls = '\n'.join((f'<#{c[0]}>' for c in channels))
+                    embed.description = f"{message.author.mention}, If you want to find players to play with, Please go ahead on one of these channels:\n\
+                        {chnls}"
 
-                await message.channel.send(embed=embed)
-                break
+                    await message.channel.send(embed=embed)
+                    break
+        except AttributeError:
+            pass
 
     @commands.command()
     async def setpartychannels(self, ctx: commands.Context, *, channel_ids: str):
