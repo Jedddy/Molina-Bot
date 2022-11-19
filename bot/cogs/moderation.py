@@ -1,9 +1,8 @@
 import asyncio
-import logging
 import discord
 from datetime import timedelta
 from discord.ext import commands
-from databases.database import ModerationDB
+from databases.moderation_database import ModerationDB
 from utils.helper import parse, send_to_modlog, embed_blueprint
 from config.config import update_config, get_config, delete_config
 
@@ -11,7 +10,6 @@ from config.config import update_config, get_config, delete_config
 class Moderation(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
-        self.db = None
         super().__init__()
 
     async def cog_check(self, ctx: commands.Context):
@@ -25,8 +23,6 @@ class Moderation(commands.Cog):
     async def on_ready(self):
         self.executor = ModerationDB()
         await self.executor.create_tables()
-        self.err_logger = logging.basicConfig(filename="bot/logs/mod_cog.txt", level=logging.ERROR)
-        self.locked_channels = {}
     
     @commands.command()
     async def warn(self, ctx: commands.Context, member: discord.Member, *, reason: str = "Not specified"):

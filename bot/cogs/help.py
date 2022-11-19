@@ -5,7 +5,7 @@ from typing import Mapping, Optional, List, Any
 
 
 class Help(commands.HelpCommand):
-    hidden_cogs = ("ErrorHandler", "AutoMod", "Economy", "Levels")
+    hidden_cogs = ("ErrorHandler", "AutoMod", "Economy", "Levels", "Management")
 
     async def send_bot_help(self, mapping: Mapping[Optional[commands.Cog], List[commands.Command[Any, ..., Any]]]) -> None:
         embed = discord.Embed(

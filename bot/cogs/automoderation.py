@@ -3,7 +3,7 @@ import re
 import asyncio
 import datetime
 from utils.helper import filtered_words
-from databases.database import ModerationDB
+from databases.moderation_database import ModerationDB
 from discord.ext import commands
 from utils.helper import embed_blueprint, send_to_modlog, parse
 from config.config import get_config
