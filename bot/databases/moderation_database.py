@@ -7,6 +7,8 @@ class ModerationDB:
         pass
 
     async def create_tables(self) -> None:
+        """Create all the tables needed"""
+
         async with aiosql.connect(self.db_path) as db:
             await db.execute("""
                 CREATE TABLE IF NOT EXISTS userlogs (
@@ -17,8 +19,19 @@ class ModerationDB:
                     ban_count INTEGER DEFAULT 0 NOT NULL,
                     profanity_count INTEGER DEFAULT 0 NOT NULL);
                 """)
+
             await db.execute("""
              CREATE TABLE IF NOT EXISTS whitelisted (
+                    role_id INTEGER PRIMARY KEY
+                    );""")
+
+            await db.execute("""
+             CREATE TABLE IF NOT EXISTS party_channels (
+                    channel_id PRIMARY KEY
+                    );""")
+
+            await db.execute("""
+             CREATE TABLE IF NOT EXISTS rank_roles (
                     role_id INTEGER PRIMARY KEY
                     );""")
 
@@ -104,7 +117,7 @@ class ModerationDB:
             """, (role_id,))
             await db.commit()
 
-    async def view_whitelist(self):
+    async def view_whitelist(self) -> list[int]:
         """View whitelist"""
         
         async with aiosql.connect(self.db_path) as db:
@@ -113,3 +126,33 @@ class ModerationDB:
             """)
             roles = await whitelists.fetchall()
             return roles
+
+    async def add_party_channel(self, channel: discord.TextChannel.id) -> None:
+        """Adds party channel to database"""
+
+        async with aiosql.connect(self.db_path) as db:
+            await db.execute(f"""
+                INSERT INTO party_channels VALUES (?);
+            """, (channel,))
+            await db.commit()
+
+    async def add_rank_role(self, role_id: discord.TextChannel.id) -> None:
+        """Adds rank role to database"""
+
+        async with aiosql.connect(self.db_path) as db:
+            await db.execute(f"""
+                INSERT INTO rank_roles VALUES (?);
+            """, (role_id,))
+            await db.commit()
+    
+    async def rank_roles_and_party_channels(self) -> tuple[list[tuple[int]], list[tuple[int]]]:
+        async with aiosql.connect(self.db_path) as db:
+            roles = await db.execute(f"""
+                SELECT * FROM rank_roles;
+            """)
+            channels = await db.execute(f"""
+                SELECT * FROM party_channels;
+            """)
+            roles = await roles.fetchall()
+            channels = await channels.fetchall()
+            return (roles, channels)
