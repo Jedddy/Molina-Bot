@@ -18,7 +18,7 @@ class ErrorHandler(commands.Cog):
         elif isinstance(error, commands.ChannelNotFound):
             embed.description = f"```Channel not found! -> <{error.argument}>```"
         elif isinstance(error, commands.CheckFailure | commands.CommandNotFound | commands.CommandInvokeError):
-            pass
+            return
         else:
             embed.description = f"```An error has occured.```"
         error_message = await ctx.send(embed=embed)
@@ -26,7 +26,7 @@ class ErrorHandler(commands.Cog):
         await error_message.delete()
         logger = logging.getLogger(__name__)
         logger.error(error)
-    
+
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(ErrorHandler(bot))
