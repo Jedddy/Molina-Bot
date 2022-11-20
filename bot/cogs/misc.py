@@ -67,7 +67,7 @@ class Misc(commands.Cog):
         """Will remind you on dms after your specified time."""
         
         rmdr = ''.join([rm for rm in reminder])
-        embed = embed_blueprint(ctx.guild)
+        embed = embed_blueprint()
         embed.description = f"**Hello!, You told me to remind you about {rmdr}!**\n**See message here:**\n{ctx.message.jump_url}"
         time = await parse(time)
         await ctx.send(f"Got it! Molina will remind you of \"{rmdr}\" in {time[1]}")
@@ -79,7 +79,7 @@ class Misc(commands.Cog):
     async def prefix(self, ctx: commands.Context, pfx: str):
         """Change default commands prefix"""
 
-        embed = embed_blueprint(ctx.guild)
+        embed = embed_blueprint()
         await update_config(ctx.guild.id, "commandPrefix", pfx)
         embed.description = f"**✅ Set commands prefix to {pfx}**"
         await ctx.send(embed=embed)
@@ -92,7 +92,7 @@ class Misc(commands.Cog):
         """Send an announcement to a specified channel"""
 
         mention = None
-        embed = embed_blueprint(ctx.guild)
+        embed = embed_blueprint()
         image = ctx.message.attachments
         if image and image[0].content_type[:5] == "image":
             embed.set_image(url=image[0].url)
@@ -112,7 +112,7 @@ class Misc(commands.Cog):
     async def ping(self, ctx: commands.Context):
         """Sends the bot's latency"""
 
-        embed = embed_blueprint(ctx.guild)
+        embed = embed_blueprint()
         embed.description = f"**Pong! ✅ {round(self.bot.latency * 1000)}ms**"
         await ctx.send(embed=embed)
 

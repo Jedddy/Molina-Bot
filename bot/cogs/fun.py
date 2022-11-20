@@ -16,7 +16,7 @@ class Fun(commands.Cog):
         answers = (
             "No", "Yes", "Maybe", "Ask again next time", "You decide"
         )
-        embed = embed_blueprint(ctx.guild)
+        embed = embed_blueprint()
         embed.description = f"**{random.choice(answers)}**"
         await ctx.send(embed=embed)
 

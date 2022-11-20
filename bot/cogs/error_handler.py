@@ -8,7 +8,7 @@ class ErrorHandler(commands.Cog):
 
     @commands.Cog.listener()
     async def on_command_error(self, ctx: commands.Context, error):
-        embed = embed_blueprint(ctx.guild)
+        embed = embed_blueprint()
         if isinstance(error, commands.MissingRequiredArgument):
             embed.description = f"```Missing argument! -> <{error.param.name}>```"
         elif isinstance(error, commands.MemberNotFound):

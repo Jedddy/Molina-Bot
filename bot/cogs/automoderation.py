@@ -50,7 +50,7 @@ class AutoMod(commands.Cog):
                     for word in self.filters:
                         if word in message.content.lower():
                             await message.delete()
-                            automod = embed_blueprint(ctx.guild)
+                            automod = embed_blueprint()
                             automod.add_field(
                                 name="Info",
                                 value=f"**Message**: {message.content}\n```yaml\nauthor: {message.author}\nauthor id: {message.author.id}\nmessage id: {message.id}```"
@@ -64,7 +64,7 @@ class AutoMod(commands.Cog):
                                 await self.executor.insert_detailed_modlogs(message.author.id, "Warn", reason="AutoMod", moderator="None")
                             if profan_count % 20 == 0 and profan_count > 0:
                                 role = discord.utils.get(message.guild.roles, name='Muted')
-                                embed = embed_blueprint(message.guild)
+                                embed = embed_blueprint()
                                 embed.description = f"**{message.author} was muted**"
                                 await message.author.add_roles(role)
                                 await send_to_modlog(ctx, embed=embed, configtype="autoModLogs", reason="Automod")
@@ -77,7 +77,7 @@ class AutoMod(commands.Cog):
     @commands.Cog.listener()
     async def on_member_ban(self, guild, user: discord.User):
         ctx = await self.bot.get_context(guild)
-        embed = embed_blueprint(guild)
+        embed = embed_blueprint()
         embed.description = "**Member banned**"
         embed.add_field(
             name="Info",
@@ -89,7 +89,7 @@ class AutoMod(commands.Cog):
     @commands.Cog.listener()
     async def on_member_unban(self, guild: discord.Guild, user: discord.User):
         ctx = await self.bot.get_context(guild)
-        embed = embed_blueprint(guild)
+        embed = embed_blueprint()
         embed.description = "**Member unbanned**"
         embed.add_field(
             name="Info",
@@ -103,7 +103,7 @@ class AutoMod(commands.Cog):
         ctx = await self.bot.get_context(before)
         if before.author.bot:
             return
-        embed = embed_blueprint(before.guild)
+        embed = embed_blueprint()
         embed.description = f"**Message edited in {before.channel}**"
         embed.add_field(
             name="Info",
@@ -122,7 +122,7 @@ class AutoMod(commands.Cog):
         ctx = await self.bot.get_context(message)
         if message.author.bot:
             return
-        embed = embed_blueprint(guild=message.guild)
+        embed = embed_blueprint()
         embed.description = f"**Message deleted in {message.channel}**"
         embed.add_field(
             name="Info",
@@ -137,7 +137,7 @@ class AutoMod(commands.Cog):
         chnl = self.bot.get_channel(chnl)
         if not chnl:
             return
-        embed = embed_blueprint(chnl.guild)
+        embed = embed_blueprint()
         embed.set_thumbnail(url=member.display_avatar)
         embed.description = f"**{member} joined. | {member.id}**"
         account_age = member.created_at.timestamp()
@@ -157,7 +157,7 @@ class AutoMod(commands.Cog):
         if not chnl:
             return
         chnl = self.bot.get_channel(chnl)
-        embed = embed_blueprint(guild)
+        embed = embed_blueprint()
         embed.set_thumbnail(url=payload.user.display_avatar)
         embed.description = f"**{payload.user} left. | {payload.user.id}**"
         await chnl.send(embed=embed)

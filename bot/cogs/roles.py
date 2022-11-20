@@ -17,7 +17,7 @@ class Roles(commands.Cog):
     async def role(self, ctx: commands.Context, member: discord.Member, role: discord.Role):
         """Adds a role to a member"""
 
-        embed = embed_blueprint(ctx.guild)
+        embed = embed_blueprint()
         if member.get_role(role.id):
             embed.description = f"**{member} already has this role!**"
         else:
@@ -31,7 +31,7 @@ class Roles(commands.Cog):
         """Adds a role to a member temporarily"""
 
         time = await parse(time)
-        embed = embed_blueprint(ctx.guild)
+        embed = embed_blueprint()
         if member.get_role(role.id):
             embed.description = f"**{member} already has this role!**"
         else:
@@ -46,7 +46,7 @@ class Roles(commands.Cog):
     async def roles(self, ctx: commands.Context):
         """Check all roles in the server"""
         
-        embed = embed_blueprint(ctx.guild)
+        embed = embed_blueprint()
         embed.description = f"**Viewing all roles in {ctx.guild.name} - {len(ctx.guild.roles)} roles**\n\n"
         embed.description += "\n".join((role.mention for role in ctx.guild.roles))
         await ctx.send(embed=embed)
@@ -55,7 +55,7 @@ class Roles(commands.Cog):
     async def roleinfo(self, ctx: commands.Context, role: discord.Role):
         """Views info about a role"""
 
-        embed = embed_blueprint(ctx.guild)
+        embed = embed_blueprint()
         embed.description = f"**Role: {role.name}**"
         response_dict = {
             "ID": role.id,
@@ -78,7 +78,7 @@ class Roles(commands.Cog):
     async def rolename(self, ctx: commands.Context, role: discord.Role, *, name: str):
         """Changes the name of a role"""
         
-        embed = embed_blueprint(ctx.guild)
+        embed = embed_blueprint()
         past_name = role.name
         await role.edit(name=name)
         embed.description = f"**Changed role name from \"{past_name}\" to \"{name}\"**"
@@ -89,7 +89,7 @@ class Roles(commands.Cog):
     async def rolecolor(self, ctx: commands.Context, role: discord.Role, color: str):
         """Changes role color"""
         
-        embed = embed_blueprint(ctx.guild)
+        embed = embed_blueprint()
         if len(color) < 7:
             color = f"#{color}" 
         color_check = re.search(r'^#(?:[0-9a-fA-F]{3}){1,2}$', color)
@@ -108,7 +108,7 @@ class Roles(commands.Cog):
         note: color_hex must start with #, leave empty if you don't want to put in a color
         """
 
-        embed = embed_blueprint(ctx.guild)
+        embed = embed_blueprint()
         name = name.split() # Converts it to a list of arguments
         possible_color = name[-1]
         if possible_color.isdigit() and len(possible_color) < 7:
@@ -133,7 +133,7 @@ class Roles(commands.Cog):
     async def delrole(self, ctx: commands.Context, role: discord.Role):
         """Deletes a role"""
 
-        embed = embed_blueprint(ctx.guild)
+        embed = embed_blueprint()
         embed.description = f"**Deleted {role.name} ✅**"
         await role.delete()
         await ctx.send(embed=embed)

@@ -20,7 +20,7 @@ class Management(commands.Cog):
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
         try:
-            embed = embed_blueprint(message.guild)
+            embed = embed_blueprint()
             container = await self.executor.rank_roles_and_party_channels() # returns a tuple with two lists
             channels = container[1] # returns [(id,), (id,)] same for container[0]
             for role in container[0]:
@@ -43,7 +43,7 @@ class Management(commands.Cog):
         """
         
         temp = [] # Temporary container for succesful channel checks so we only add everything if we dont get an error from the for loop
-        embed = embed_blueprint(ctx.guild)
+        embed = embed_blueprint()
         for channel in channel_ids.split():
             chan = discord.utils.get(ctx.guild.text_channels, id=int(channel))
             if not chan:
@@ -71,7 +71,7 @@ class Management(commands.Cog):
                 parsed += item + " "
 
         temp = [] # Temporary container for succesful channel checks so we only add everything if we dont get an error from the for loop
-        embed = embed_blueprint(ctx.guild)
+        embed = embed_blueprint()
         for role_id in parsed.split():
             role = ctx.guild.get_role(int(role_id))
             if not role:

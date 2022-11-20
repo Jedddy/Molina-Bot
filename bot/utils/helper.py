@@ -36,12 +36,11 @@ def filtered_words() -> list[str]:
     return file
 
 
-def embed_blueprint(guild: discord.Guild) -> discord.Embed:
+def embed_blueprint() -> discord.Embed:
     """Returns an discord.Embed blueprint that has time, server name and color"""
 
     _time = datetime.now()
     embed = discord.Embed(color=0xE60283)
-    embed.set_footer(text=f"{guild.name}")
     embed.timestamp = _time
     return embed
 

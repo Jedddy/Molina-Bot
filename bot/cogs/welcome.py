@@ -48,7 +48,7 @@ class Welcome(commands.Cog):
     async def setverification(self, ctx: commands.Context, role_id):
         """Sets verification channel"""
 
-        embed = embed_blueprint(ctx.guild)
+        embed = embed_blueprint()
         embed.description = "**React here to verify**"
         role = discord.utils.get(ctx.guild.roles, id=int(role_id)) # Check if role exists
         if role:

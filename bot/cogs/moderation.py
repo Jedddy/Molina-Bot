@@ -31,10 +31,10 @@ class Moderation(commands.Cog):
 
         if member.bot:
             return
-        embed = embed_blueprint(ctx.guild)
+        embed = embed_blueprint()
         embed.description = f"**{member} has been warned.** | {reason}"
         embed.set_thumbnail(url=member.avatar.url)
-        warn_embed = embed_blueprint(ctx.guild)
+        warn_embed = embed_blueprint()
         warn_embed.description = f"**You have been warned on {ctx.guild.name}**\n\nReason for warn: {reason}"
         await member.send(embed=warn_embed)
         await ctx.send(embed=embed)
@@ -47,7 +47,7 @@ class Moderation(commands.Cog):
         """Mutes a member."""
 
         time = await parse(duration.rstrip()) if duration else None
-        embed = embed_blueprint(ctx.guild)
+        embed = embed_blueprint()
         embed.description = f"**{member} has been muted for {time[1] if duration else '[time not specified]'}.**"
         role = discord.utils.get(ctx.guild.roles, name='Muted')
         await ctx.send(embed=embed)
@@ -64,7 +64,7 @@ class Moderation(commands.Cog):
         """Unmutes a member"""
 
         role = discord.utils.get(member.roles, name="Muted")
-        embed = embed_blueprint(ctx.guild)
+        embed = embed_blueprint()
         if role:
             await member.remove_roles(role)
             embed.description = f"**Unmuted {member}**"  
@@ -80,7 +80,7 @@ class Moderation(commands.Cog):
     async def ban(self, ctx: commands.Context, member: discord.Member, *, reason: str = "Not specified"):
         """Bans a member."""
         
-        embed = embed_blueprint(ctx.guild)
+        embed = embed_blueprint()
         embed.title = f"You have been banned from {ctx.guild.name}"
         embed.description = "You can submit an appeal at:\nhttps://bit.ly/3v4PpKs"
         embed.set_footer(text=f"Reason for ban: {reason}")
@@ -90,7 +90,7 @@ class Moderation(commands.Cog):
         except discord.Forbidden:
             pass
         await member.ban()
-        embed_ban = embed_blueprint(ctx.guild)
+        embed_ban = embed_blueprint()
         embed_ban.description = f"**{member} has been banned.** | {reason}"
         await ctx.send(embed=embed_ban)
         await send_to_modlog(ctx, embed=embed, configtype="modLogChannel", reason=reason, moderation=True)
@@ -102,7 +102,7 @@ class Moderation(commands.Cog):
         """Unbans a member"""
 
         user = await self.bot.fetch_user(member_id)
-        embed = embed_blueprint(ctx.guild)
+        embed = embed_blueprint()
         embed.description = f"**{user} unbanned.** | {reason}"
         await ctx.guild.unban(user)
         await ctx.send(embed=embed)
@@ -113,9 +113,9 @@ class Moderation(commands.Cog):
     async def kick(self, ctx: commands.Context, member: discord.Member, *, reason: str = "Not specified"):
         """Kicks a member."""
 
-        embed_kick = embed_blueprint(ctx.guild)
+        embed_kick = embed_blueprint()
         embed_kick.description = f"**{member} has been kicked.** | {reason}"
-        embed = embed_blueprint(ctx.guild)
+        embed = embed_blueprint()
         embed.title = f"You have been kicked from {ctx.guild.name}"
         embed.set_footer(text=f"Reason for kick: {reason}")
         embed.set_thumbnail(url=ctx.guild.icon.url)
@@ -130,7 +130,7 @@ class Moderation(commands.Cog):
     async def lock(self, ctx: commands.Context, channel: discord.TextChannel = None):
         """Locks a channel."""
 
-        embed = embed_blueprint(ctx.guild)
+        embed = embed_blueprint()
         channel = channel or ctx.channel
         locked_channels = await get_config(ctx.guild.id, "lockedChannels")
         if not locked_channels or str(channel.id) not in locked_channels.keys():
@@ -150,7 +150,7 @@ class Moderation(commands.Cog):
     async def unlock(self, ctx: commands.Context, channel: discord.TextChannel = None):
         """Unlocks a locked channel"""
 
-        embed = embed_blueprint(ctx.guild)
+        embed = embed_blueprint()
         channel = channel or ctx.channel
         locked_channels = await get_config(ctx.guild.id, "lockedChannels")
         if str(channel.id) in locked_channels.keys():
@@ -170,7 +170,7 @@ class Moderation(commands.Cog):
         Put "-d" as type for detailed logs
         """
 
-        embed = embed_blueprint(ctx.guild)
+        embed = embed_blueprint()
         if isinstance(member, int):
             member = await self.bot.fetch_user(member)
         embed.title = f"**Viewing Mod Logs for {member}**"
@@ -209,7 +209,7 @@ class Moderation(commands.Cog):
         """Sets modlog channel"""
         
         channel = channel or ctx.channel
-        embed = embed_blueprint(ctx.guild)
+        embed = embed_blueprint()
         embed.description = f"**Mod logs channel set to {channel.name}**"
         await update_config(ctx.guild.id, "modLogChannel", channel.id)
         await ctx.send(embed=embed)
@@ -219,7 +219,7 @@ class Moderation(commands.Cog):
         """Sets modlog channel"""
 
         channel = channel or ctx.channel
-        embed = embed_blueprint(ctx.guild)
+        embed = embed_blueprint()
         embed.description = f"**Automod logs channel set to {channel.name}**"
         await update_config(ctx.guild.id, "autoModLogChannel", channel.id)
         await ctx.send(embed=embed)
@@ -229,7 +229,7 @@ class Moderation(commands.Cog):
         """Sets modlog channel"""
 
         channel = channel or ctx.channel
-        embed = embed_blueprint(ctx.guild)
+        embed = embed_blueprint()
         embed.description = f"**Bot logs channel set to {channel.name}**"
         await update_config(ctx.guild.id, "botLogChannel", channel.id)
         await ctx.send(embed=embed)
@@ -239,7 +239,7 @@ class Moderation(commands.Cog):
         """Time out a member"""
 
         time = await parse(duration.rstrip()) # Returns a tuple with 2 items. (seconds, formatted_time)
-        embed = embed_blueprint(ctx.guild)
+        embed = embed_blueprint()
         embed.description = f"**{member} has been timed out for {time[1]}.**"
         await member.timeout(timedelta(seconds=time[0]))
         await ctx.send(embed=embed)
@@ -251,7 +251,7 @@ class Moderation(commands.Cog):
     async def whitelist(self, ctx: commands.Context, role: discord.Role):
         """Whitelists a role"""
 
-        embed = embed_blueprint(ctx.guild)
+        embed = embed_blueprint()
         if role:
             if not await self.executor.in_whilelist(role.id):
                 await self.executor.insert_whitelist(role.id)
@@ -265,7 +265,7 @@ class Moderation(commands.Cog):
     async def unwhitelist(self, ctx: commands.Context, role: discord.Role):
         """Removes a role from whitelist"""
         
-        embed = embed_blueprint(ctx.guild)
+        embed = embed_blueprint()
         if role:
             if await self.executor.in_whilelist(role.id):
                 await self.executor.remove_whitelist(role.id)
@@ -280,7 +280,7 @@ class Moderation(commands.Cog):
         """View whitelist in this server"""
 
         checker = discord.utils.get
-        embed = embed_blueprint(ctx.guild)
+        embed = embed_blueprint()
         embed.title = f"Viewing whitelisted roles for {ctx.guild.name}"
         roles = await self.executor.view_whitelist()
         if not roles:
@@ -299,7 +299,7 @@ class Moderation(commands.Cog):
         """Purges messages on a channel"""
 
         await ctx.message.delete()
-        embed = embed_blueprint(ctx.guild)
+        embed = embed_blueprint()
         await ctx.channel.purge(limit=limit)
         embed.description = f"**Purged {limit} messages**"
         msg = await ctx.send(embed=embed)
