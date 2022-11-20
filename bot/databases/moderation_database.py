@@ -1,5 +1,5 @@
 import aiosqlite as aiosql
-import discord
+import datetime
 
 class ModerationDB:
     db_path = "bot/databases/mlbbmembers.db"
@@ -35,13 +35,15 @@ class ModerationDB:
                         role_id INTEGER PRIMARY KEY
                         );""")
 
-            # await db.execute("""
-            #     CREATE TABLE IF NOT EXISTS detailed_modlogs (
-            #         case_no INTEGER PRIMARY KEY,
-            #         user_id INTEGER,
-            #         log_type TEXT,
-            #         reason TEXT
-            #     ); """)
+            await db.execute("""
+                CREATE TABLE IF NOT EXISTS detailed_modlogs (
+                    case_no INTEGER PRIMARY KEY,
+                    user_id INTEGER,
+                    log_type TEXT,
+                    reason TEXT,
+                    moderator TEXT,
+                    date TEXT
+                ); """)
 
     async def check_if_exists(self, table, column, _id: int) -> bool:
         async with aiosql.connect(self.db_path) as db:
@@ -51,7 +53,7 @@ class ModerationDB:
             check = await check.fetchall()
             return bool(check)
 
-    async def insert_member(self, user_id: discord.Member.id) -> None:
+    async def insert_member(self, user_id: int) -> None:
         """Inserts data to the table"""
         
         async with aiosql.connect(self.db_path) as db:
@@ -167,8 +169,21 @@ class ModerationDB:
             channels = await channels.fetchall()
             return (roles, channels)
 
-    async def insert_detailed_modlogs(self, user_id: int, log_type: str, reason: str) -> None:
-        pass
+    async def insert_detailed_modlogs(self, user_id: int, log_type: str, reason: str, moderator: str) -> None:
+        date = datetime.datetime.now()
+        date = date.strftime("%B/%d/%Y")
+        async with aiosql.connect(self.db_path) as db:
+            await db.execute("""
+                INsERT INTO detailed_modlogs (user_id, log_type, reason, moderator, date) VALUES (?, ?, ?, ?, ?)
+            """, (user_id, log_type, reason, moderator, date))
+            await db.commit()
 
-    async def check_detailed_modlogs(self, user_id):
-        pass
+    async def check_detailed_modlogs(self, user_id: int, offset: int) -> list[tuple]:
+        async with aiosql.connect(self.db_path) as db:
+            logs = await db.execute_fetchall("""
+                SELECT * FROM detailed_modlogs WHERE user_id = ? LIMIT 5 OFFSET ?;
+            """, (user_id, offset))
+            lenght = await db.execute_fetchall("""
+                SELECT * FROM detailed_modlogs WHERE user_id = ?
+            """, (user_id,))
+            return logs, len(lenght)

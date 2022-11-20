@@ -1,5 +1,6 @@
 import asyncio
 import discord
+from math import ceil
 from datetime import timedelta
 from discord.ext import commands
 from databases.moderation_database import ModerationDB
@@ -28,22 +29,19 @@ class Moderation(commands.Cog):
     async def warn(self, ctx: commands.Context, member: discord.Member, *, reason: str = "Not specified"):
         """Warns a member"""
 
+        if member.bot:
+            return
         embed = embed_blueprint(ctx.guild)
-        embed.description = f"**A member has been warned.**"
+        embed.description = f"**{member} has been warned.** | {reason}"
         embed.set_thumbnail(url=member.avatar.url)
-        embed.add_field(
-            name="Member", 
-            value=member
-            )
-        embed.add_field(
-            name="Reason",
-            value=reason, 
-            inline=False
-            )
-        await self.executor.update_db("warn_count", member.id)
+        warn_embed = embed_blueprint(ctx.guild)
+        warn_embed.description = f"**You have been warned on {ctx.guild.name}**\n\nReason for warn: {reason}"
+        await member.send(embed=warn_embed)
         await ctx.send(embed=embed)
         await send_to_modlog(ctx, embed=embed, configtype="modLogChannel", moderation=True)
-
+        await self.executor.update_db("warn_count", member.id)
+        await self.executor.insert_detailed_modlogs(member.id, "Warn", reason=reason, moderator=str(ctx.author))
+        
     @commands.command()
     async def mute(self, ctx: commands.Context, member: discord.Member, duration: str = None, *, reason: str = "Not specified"):
         """Mutes a member."""
@@ -51,12 +49,12 @@ class Moderation(commands.Cog):
         time = await parse(duration.rstrip()) if duration else None
         embed = embed_blueprint(ctx.guild)
         embed.description = f"**{member} has been muted for {time[1] if duration else '[time not specified]'}.**"
-        role = discord.utils.get(member.guild.roles, name='Muted')
+        role = discord.utils.get(ctx.guild.roles, name='Muted')
         await ctx.send(embed=embed)
-        await self.executor.update_db("mute_count", member.id)
         await member.add_roles(role)
-        embed.set_thumbnail(url=member.display_avatar)
         await send_to_modlog(ctx, embed=embed, configtype="modLogChannel", reason=reason, moderation=True)
+        await self.executor.insert_detailed_modlogs(member.id, "Mute", reason=reason, moderator=str(ctx.author))
+        await self.executor.update_db("mute_count", member.id)
         if duration:
             await asyncio.sleep(time[0])
             await member.remove_roles(role)
@@ -75,8 +73,8 @@ class Moderation(commands.Cog):
             await ctx.send(embed=embed)
             return
         await ctx.send(embed=embed)
-        embed.set_thumbnail(url=member.display_avatar)
         await send_to_modlog(ctx, embed=embed, configtype="modLogChannel", reason=reason, moderation=True)
+        await self.executor.insert_detailed_modlogs(member.id, "Unmute", reason=reason, moderator=str(ctx.author))
 
     @commands.command()
     async def ban(self, ctx: commands.Context, member: discord.Member, *, reason: str = "Not specified"):
@@ -94,10 +92,10 @@ class Moderation(commands.Cog):
         await member.ban()
         embed_ban = embed_blueprint(ctx.guild)
         embed_ban.description = f"**{member} has been banned.** | {reason}"
-        embed_ban.set_thumbnail(url=member.display_avatar)
-        await self.executor.update_db("ban_count", member.id)
         await ctx.send(embed=embed_ban)
         await send_to_modlog(ctx, embed=embed, configtype="modLogChannel", reason=reason, moderation=True)
+        await self.executor.update_db("ban_count", member.id)
+        await self.executor.insert_detailed_modlogs(member.id, "Ban", reason=reason, moderator=str(ctx.author))
 
     @commands.command()
     async def unban(self, ctx: commands.Context, member_id: int, *, reason: str = "Not specified"):
@@ -105,27 +103,28 @@ class Moderation(commands.Cog):
 
         user = await self.bot.fetch_user(member_id)
         embed = embed_blueprint(ctx.guild)
-        embed.description = f"**{user} unbanned.**"
+        embed.description = f"**{user} unbanned.** | {reason}"
         await ctx.guild.unban(user)
         await ctx.send(embed=embed)
-        embed.set_thumbnail(url=user.display_avatar)
         await send_to_modlog(ctx, embed=embed, configtype="modLogChannel", reason=reason, moderation=True)
+        await self.executor.insert_detailed_modlogs(member_id, "Unban", reason=reason, moderator=str(ctx.author))
 
     @commands.command()
     async def kick(self, ctx: commands.Context, member: discord.Member, *, reason: str = "Not specified"):
         """Kicks a member."""
 
+        embed_kick = embed_blueprint(ctx.guild)
+        embed_kick.description = f"**{member} has been kicked.** | {reason}"
         embed = embed_blueprint(ctx.guild)
         embed.title = f"You have been kicked from {ctx.guild.name}"
         embed.set_footer(text=f"Reason for kick: {reason}")
+        embed.set_thumbnail(url=ctx.guild.icon.url)
         await member.send(embed=embed)
         await member.kick(reason=reason)
-        embed_kick = embed_blueprint(ctx.guild)
-        embed_kick.description = f"**{member} has been kicked.**"
-        await self.executor.update_db("kick_count", member.id)
         await ctx.send(embed=embed_kick)
-        embed.set_thumbnail(url=member.display_avatar)
         await send_to_modlog(ctx, embed=embed, configtype="modLogChannel", reason=reason, moderation=True)
+        await self.executor.update_db("kick_count", member.id)
+        await self.executor.insert_detailed_modlogs(member.id, "Kick", reason=reason, moderator=str(ctx.author))
 
     @commands.command()
     async def lock(self, ctx: commands.Context, channel: discord.TextChannel = None):
@@ -165,8 +164,11 @@ class Moderation(commands.Cog):
         await ctx.send(embed=embed)
 
     @commands.command()
-    async def modlogs(self, ctx: commands.Context, member: int | discord.Member):
-        """Views mod logs of a member"""
+    async def modlogs(self, ctx: commands.Context, member: int | discord.Member, log_type: str = None, page: int = 1):
+        """Views mod logs of a member
+        
+        Put "-d" as type for detailed logs
+        """
 
         embed = embed_blueprint(ctx.guild)
         if isinstance(member, int):
@@ -174,17 +176,32 @@ class Moderation(commands.Cog):
         embed.title = f"**Viewing Mod Logs for {member}**"
         embed.set_thumbnail(url=member.avatar.url)
         user_logs = await self.executor.view_modlogs(member.id)
-        if user_logs:
-            user_logs.pop("profanity_count")
-            embed.add_field(
-                name="User ID",
-                value=user_logs.pop("user_id"),
-                inline=False
-                )
-            desc = (f"{name[:-6].title()} count: {value}\n" for name, value in user_logs.items())
-            embed.description = f"```yaml\n{''.join(desc)}\n```"
+        logs, page_max = await self.executor.check_detailed_modlogs(member.id, offset=(page - 1)*5) # returns (logs, lenght)
+        if log_type == "-d":
+            if logs:
+                embed.description = f"Page {page}/{ceil(page_max/5)}"
+                for log in logs:
+                    case_no, user_id, ltype, reason, moderator, date = log # log is a tuple containing the rows on the db
+                    embed.add_field(
+                        name=f"Case {case_no}",
+                        value=f"Type: {ltype}\nModerator: {moderator}\nReason: {reason}\nDate: {date}",
+                        inline=False
+                    )
+                embed.set_footer(text="<prefix>modlogs <member> -d <page>")
+            else:
+                embed.description = "**No logs yet.**"
         else:
-            embed.description = "**No logs yet.**"
+            if user_logs:
+                user_logs.pop("profanity_count")
+                embed.add_field(
+                    name="User ID",
+                    value=user_logs.pop("user_id"),
+                    inline=False
+                    )
+                desc = (f"{name[:-6].title()} count: {value}\n" for name, value in user_logs.items())
+                embed.description = f"```yaml\n{''.join(desc)}\n```"
+            else:
+                embed.description = "**No logs yet.**"
         await ctx.send(embed=embed)
 
     @commands.command()
