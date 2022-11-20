@@ -80,6 +80,8 @@ class ModerationDB:
                 SELECT * FROM userlogs WHERE user_id = ?;
             """, (user_id,))
             rows = await user_logs.fetchone()
+            if not rows:
+                return
             d = {
                 "user_id": rows[0],
                 "mute_count": rows[1],

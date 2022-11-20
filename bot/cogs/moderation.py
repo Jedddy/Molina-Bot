@@ -87,7 +87,6 @@ class Moderation(commands.Cog):
         embed.description = "You can submit an appeal at:\nhttps://bit.ly/3v4PpKs"
         embed.set_footer(text=f"Reason for ban: {reason}")
         embed.set_thumbnail(url=ctx.guild.icon.url)
-        await member.send(embed=embed)
         await member.ban()
         embed_ban = embed_blueprint(ctx.guild)
         embed_ban.description = f"**{member} has been banned.**"
@@ -95,6 +94,10 @@ class Moderation(commands.Cog):
         await ctx.send(embed=embed_ban)
         embed.set_thumbnail(url=member.display_avatar)
         await send_to_modlog(ctx, embed=embed, configtype="modLogChannel", reason=reason, moderation=True)
+        try:
+            await member.send(embed=embed)
+        except discord.Forbidden:
+            pass
 
     @commands.command()
     async def unban(self, ctx: commands.Context, member_id: int, *, reason: str = "Not specified"):
