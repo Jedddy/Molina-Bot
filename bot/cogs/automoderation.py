@@ -61,12 +61,14 @@ class AutoMod(commands.Cog):
                             if profan_count % 10 == 0 and profan_count > 0:
                                 await message.channel.send(f"Please avoid using profane words {message.author.mention}. You have been warned.")
                                 await self.executor.update_db("warn_count", message.author.id)
+                                await self.executor.insert_detailed_modlogs(message.author.id, "Warn", reason="AutoMod", moderator="None")
                             if profan_count % 20 == 0 and profan_count > 0:
                                 role = discord.utils.get(message.guild.roles, name='Muted')
                                 embed = embed_blueprint(message.guild)
                                 embed.description = f"**{message.author} was muted**"
                                 await message.author.add_roles(role)
                                 await send_to_modlog(ctx, embed=embed, configtype="autoModLogs", reason="Automod")
+                                await self.executor.insert_detailed_modlogs(message.author.id, "Mute", reason="AutoMod", moderator="None")
                                 await asyncio.sleep(1800)
                                 await message.author.remove_roles(role)
         except (AttributeError, discord.errors.NotFound) as e:
