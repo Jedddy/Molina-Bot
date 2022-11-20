@@ -94,9 +94,9 @@ class Moderation(commands.Cog):
         await member.ban()
         embed_ban = embed_blueprint(ctx.guild)
         embed_ban.description = f"**{member} has been banned.**"
+        embed_ban.set_thumbnail(url=member.display_avatar)
         await self.executor.update_db("ban_count", member.id)
         await ctx.send(embed=embed_ban)
-        embed.set_thumbnail(url=member.display_avatar)
         await send_to_modlog(ctx, embed=embed, configtype="modLogChannel", reason=reason, moderation=True)
 
     @commands.command()
