@@ -93,7 +93,7 @@ class Moderation(commands.Cog):
             pass
         await member.ban()
         embed_ban = embed_blueprint(ctx.guild)
-        embed_ban.description = f"**{member} has been banned.**"
+        embed_ban.description = f"**{member} has been banned.** | {reason}"
         embed_ban.set_thumbnail(url=member.display_avatar)
         await self.executor.update_db("ban_count", member.id)
         await ctx.send(embed=embed_ban)
