@@ -21,19 +21,27 @@ class ModerationDB:
                 """)
 
             await db.execute("""
-             CREATE TABLE IF NOT EXISTS whitelisted (
-                    role_id INTEGER PRIMARY KEY
-                    );""")
+                CREATE TABLE IF NOT EXISTS whitelisted (
+                        role_id INTEGER PRIMARY KEY
+                        );""")
 
             await db.execute("""
-             CREATE TABLE IF NOT EXISTS party_channels (
-                    channel_id PRIMARY KEY
-                    );""")
+                CREATE TABLE IF NOT EXISTS party_channels (
+                        channel_id PRIMARY KEY
+                        );""")
 
             await db.execute("""
-             CREATE TABLE IF NOT EXISTS rank_roles (
-                    role_id INTEGER PRIMARY KEY
-                    );""")
+                CREATE TABLE IF NOT EXISTS rank_roles (
+                        role_id INTEGER PRIMARY KEY
+                        );""")
+
+            # await db.execute("""
+            #     CREATE TABLE IF NOT EXISTS detailed_modlogs (
+            #         case_no INTEGER PRIMARY KEY,
+            #         user_id INTEGER,
+            #         log_type TEXT,
+            #         reason TEXT
+            #     ); """)
 
     async def check_if_exists(self, table, column, _id: int) -> bool:
         async with aiosql.connect(self.db_path) as db:
@@ -129,7 +137,7 @@ class ModerationDB:
             roles = await whitelists.fetchall()
             return roles
 
-    async def add_party_channel(self, channel: discord.TextChannel.id) -> None:
+    async def add_party_channel(self, channel: int) -> None:
         """Adds party channel to database"""
 
         async with aiosql.connect(self.db_path) as db:
@@ -138,7 +146,7 @@ class ModerationDB:
             """, (channel,))
             await db.commit()
 
-    async def add_rank_role(self, role_id: discord.TextChannel.id) -> None:
+    async def add_rank_role(self, role_id: int) -> None:
         """Adds rank role to database"""
 
         async with aiosql.connect(self.db_path) as db:
@@ -158,3 +166,9 @@ class ModerationDB:
             roles = await roles.fetchall()
             channels = await channels.fetchall()
             return (roles, channels)
+
+    async def insert_detailed_modlogs(self, user_id: int, log_type: str, reason: str) -> None:
+        pass
+
+    async def check_detailed_modlogs(self, user_id):
+        pass
