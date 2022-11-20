@@ -87,6 +87,10 @@ class Moderation(commands.Cog):
         embed.description = "You can submit an appeal at:\nhttps://bit.ly/3v4PpKs"
         embed.set_footer(text=f"Reason for ban: {reason}")
         embed.set_thumbnail(url=ctx.guild.icon.url)
+        try:
+            await member.send(embed=embed)
+        except discord.Forbidden:
+            pass
         await member.ban()
         embed_ban = embed_blueprint(ctx.guild)
         embed_ban.description = f"**{member} has been banned.**"
@@ -94,10 +98,6 @@ class Moderation(commands.Cog):
         await ctx.send(embed=embed_ban)
         embed.set_thumbnail(url=member.display_avatar)
         await send_to_modlog(ctx, embed=embed, configtype="modLogChannel", reason=reason, moderation=True)
-        try:
-            await member.send(embed=embed)
-        except discord.Forbidden:
-            pass
 
     @commands.command()
     async def unban(self, ctx: commands.Context, member_id: int, *, reason: str = "Not specified"):
@@ -165,10 +165,12 @@ class Moderation(commands.Cog):
         await ctx.send(embed=embed)
 
     @commands.command()
-    async def modlogs(self, ctx: commands.Context, member: discord.Member):
+    async def modlogs(self, ctx: commands.Context, member: int | discord.Member):
         """Views mod logs of a member"""
 
         embed = embed_blueprint(ctx.guild)
+        if isinstance(member, int):
+            member = await self.bot.fetch_user(member)
         embed.title = f"**Viewing Mod Logs for {member}**"
         embed.set_thumbnail(url=member.avatar.url)
         user_logs = await self.executor.view_modlogs(member.id)
@@ -274,7 +276,18 @@ class Moderation(commands.Cog):
                 checks.append(checker(ctx.guild.roles, id=role[0]))
         embed.description = "\n".join((f"{num}. **{r.name}**" for num, r in enumerate(checks, start=1)))
         await ctx.send(embed=embed)
+    
+    @commands.command()
+    async def purge(self, ctx: commands.Context, limit: int):
+        """Purges messages on a channel"""
 
+        await ctx.message.delete()
+        embed = embed_blueprint(ctx.guild)
+        await ctx.channel.purge(limit=limit)
+        embed.description = f"**Purged {limit} messages**"
+        msg = await ctx.send(embed=embed)
+        await asyncio.sleep(5)
+        await msg.delete()
 
 
 async def setup(bot: commands.Bot):
