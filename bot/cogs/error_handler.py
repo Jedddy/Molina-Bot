@@ -17,10 +17,8 @@ class ErrorHandler(commands.Cog):
             embed.description = f"```Role not found! -> <{error.argument}>```"
         elif isinstance(error, commands.ChannelNotFound):
             embed.description = f"```Channel not found! -> <{error.argument}>```"
-        elif isinstance(error, commands.CheckFailure):
-            return
-        elif isinstance(error, commands.CommandNotFound):
-            return
+        elif isinstance(error, commands.CheckFailure | commands.CommandNotFound | commands.CommandInvokeError):
+            pass
         else:
             embed.description = f"```An error has occured.```"
         error_message = await ctx.send(embed=embed)
