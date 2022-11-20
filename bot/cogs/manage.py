@@ -19,8 +19,8 @@ class Management(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
-        embed = embed_blueprint(message.guild)
         try:
+            embed = embed_blueprint(message.guild)
             container = await self.executor.rank_roles_and_party_channels() # returns a tuple with two lists
             channels = container[1] # returns [(id,), (id,)] same for container[0]
             for role in container[0]:
