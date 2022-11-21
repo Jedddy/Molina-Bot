@@ -22,8 +22,8 @@ class Moderation(commands.Cog):
         
     @commands.Cog.listener()
     async def on_ready(self):
-        self.executor = ModerationDB()
-        await self.executor.create_tables()
+        self.db = ModerationDB()
+        await self.db.create_tables()
     
     @commands.command()
     async def warn(self, ctx: commands.Context, member: discord.Member, *, reason: str = "Not specified"):
@@ -39,8 +39,8 @@ class Moderation(commands.Cog):
         await member.send(embed=warn_embed)
         await ctx.send(embed=embed)
         await send_to_modlog(ctx, embed=embed, configtype="modLogChannel", moderation=True)
-        await self.executor.update_db("warn_count", member.id)
-        await self.executor.insert_detailed_modlogs(member.id, "Warn", reason=reason, moderator=str(ctx.author))
+        await self.db.update_db("warn_count", member.id)
+        await self.db.insert_detailed_modlogs(member.id, "Warn", reason=reason, moderator=str(ctx.author))
         
     @commands.command()
     async def mute(self, ctx: commands.Context, member: discord.Member, duration: str = None, *, reason: str = "Not specified"):
@@ -53,8 +53,8 @@ class Moderation(commands.Cog):
         await ctx.send(embed=embed)
         await member.add_roles(role)
         await send_to_modlog(ctx, embed=embed, configtype="modLogChannel", reason=reason, moderation=True)
-        await self.executor.insert_detailed_modlogs(member.id, "Mute", reason=reason, moderator=str(ctx.author))
-        await self.executor.update_db("mute_count", member.id)
+        await self.db.insert_detailed_modlogs(member.id, "Mute", reason=reason, moderator=str(ctx.author))
+        await self.db.update_db("mute_count", member.id)
         if duration:
             await asyncio.sleep(time[0])
             await member.remove_roles(role)
@@ -74,7 +74,7 @@ class Moderation(commands.Cog):
             return
         await ctx.send(embed=embed)
         await send_to_modlog(ctx, embed=embed, configtype="modLogChannel", reason=reason, moderation=True)
-        await self.executor.insert_detailed_modlogs(member.id, "Unmute", reason=reason, moderator=str(ctx.author))
+        await self.db.insert_detailed_modlogs(member.id, "Unmute", reason=reason, moderator=str(ctx.author))
 
     @commands.command()
     async def ban(self, ctx: commands.Context, member: discord.Member, *, reason: str = "Not specified"):
@@ -94,8 +94,8 @@ class Moderation(commands.Cog):
         embed_ban.description = f"**{member} has been banned.** | {reason}"
         await ctx.send(embed=embed_ban)
         await send_to_modlog(ctx, embed=embed, configtype="modLogChannel", reason=reason, moderation=True)
-        await self.executor.update_db("ban_count", member.id)
-        await self.executor.insert_detailed_modlogs(member.id, "Ban", reason=reason, moderator=str(ctx.author))
+        await self.db.update_db("ban_count", member.id)
+        await self.db.insert_detailed_modlogs(member.id, "Ban", reason=reason, moderator=str(ctx.author))
 
     @commands.command()
     async def unban(self, ctx: commands.Context, member_id: int, *, reason: str = "Not specified"):
@@ -107,7 +107,7 @@ class Moderation(commands.Cog):
         await ctx.guild.unban(user)
         await ctx.send(embed=embed)
         await send_to_modlog(ctx, embed=embed, configtype="modLogChannel", reason=reason, moderation=True)
-        await self.executor.insert_detailed_modlogs(member_id, "Unban", reason=reason, moderator=str(ctx.author))
+        await self.db.insert_detailed_modlogs(member_id, "Unban", reason=reason, moderator=str(ctx.author))
 
     @commands.command()
     async def kick(self, ctx: commands.Context, member: discord.Member, *, reason: str = "Not specified"):
@@ -123,8 +123,8 @@ class Moderation(commands.Cog):
         await member.kick(reason=reason)
         await ctx.send(embed=embed_kick)
         await send_to_modlog(ctx, embed=embed, configtype="modLogChannel", reason=reason, moderation=True)
-        await self.executor.update_db("kick_count", member.id)
-        await self.executor.insert_detailed_modlogs(member.id, "Kick", reason=reason, moderator=str(ctx.author))
+        await self.db.update_db("kick_count", member.id)
+        await self.db.insert_detailed_modlogs(member.id, "Kick", reason=reason, moderator=str(ctx.author))
 
     @commands.command()
     async def lock(self, ctx: commands.Context, channel: discord.TextChannel = None):
@@ -175,8 +175,8 @@ class Moderation(commands.Cog):
             member = await self.bot.fetch_user(member)
         embed.title = f"**Viewing Mod Logs for {member}**"
         embed.set_thumbnail(url=member.avatar.url)
-        user_logs = await self.executor.view_modlogs(member.id)
-        logs, page_max = await self.executor.check_detailed_modlogs(member.id, offset=(page - 1)*5) # returns (logs, lenght)
+        user_logs = await self.db.view_modlogs(member.id)
+        logs, page_max = await self.db.check_detailed_modlogs(member.id, offset=(page - 1)*5) # returns (logs, lenght)
         if log_type == "-d":
             if logs:
                 embed.description = f"Page {page}/{ceil(page_max/5)}"
@@ -243,7 +243,7 @@ class Moderation(commands.Cog):
         embed.description = f"**{member} has been timed out for {time[1]}.**"
         await member.timeout(timedelta(seconds=time[0]))
         await ctx.send(embed=embed)
-        await self.executor.update_db("mute_count", member.id)
+        await self.db.update_db("mute_count", member.id)
         embed.set_thumbnail(url=member.display_avatar)
         await send_to_modlog(ctx, embed=embed, configtype="modLogChannel", reason=reason, moderation=True)
 
@@ -253,8 +253,8 @@ class Moderation(commands.Cog):
 
         embed = embed_blueprint()
         if role:
-            if not await self.executor.in_whilelist(role.id):
-                await self.executor.insert_whitelist(role.id)
+            if not await self.db.in_whilelist(role.id):
+                await self.db.insert_whitelist(role.id)
                 embed.description = f"**{role.name} added to automod whitelist.**"
                 await send_to_modlog(ctx, embed=embed, configtype="modLogChannel", moderation=True)
             else:
@@ -267,8 +267,8 @@ class Moderation(commands.Cog):
         
         embed = embed_blueprint()
         if role:
-            if await self.executor.in_whilelist(role.id):
-                await self.executor.remove_whitelist(role.id)
+            if await self.db.in_whilelist(role.id):
+                await self.db.remove_whitelist(role.id)
                 embed.description = f"**Removed {role} from whitelist.**"
                 await send_to_modlog(ctx, embed=embed, configtype="modLogChannel", moderation=True)
             else:
@@ -282,7 +282,7 @@ class Moderation(commands.Cog):
         checker = discord.utils.get
         embed = embed_blueprint()
         embed.title = f"Viewing whitelisted roles for {ctx.guild.name}"
-        roles = await self.executor.view_whitelist()
+        roles = await self.db.view_whitelist()
         if not roles:
             embed.description = "**Nothing to show.**"
             await ctx.send(embed=embed)

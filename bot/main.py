@@ -19,8 +19,11 @@ class Molina(commands.Bot):
         self.synced = False
 
     async def get_prefix(self, message: discord.Message) -> str:
-        pfx = await get_config(message.guild.id, "commandPrefix")
-        return pfx or "?"
+        guild = message.guild
+        if hasattr(guild, "id"):
+            pfx = await get_config(guild.id, "commandPrefix")
+            return pfx
+        return "?"
 
     async def on_ready(self) -> None:
         await self.wait_until_ready()

@@ -23,19 +23,19 @@ class AutoMod(commands.Cog):
 
     @commands.Cog.listener()
     async def on_ready(self):
-        self.executor = ModerationDB()
-        await self.executor.create_tables()
+        self.db = ModerationDB()
+        await self.db.create_tables()
         self.filters = filtered_words()
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
         ctx = await self.bot.get_context(message)
         try:
-            if not await self.executor.check_if_exists("userlogs", "user_id", message.author.id):
-                await self.executor.insert_member(message.author.id)
+            if not await self.db.moderation_db_check(message.author.id):
+                await self.db.insert_member(message.author.id)
             if not message.author.bot:
                 # Checks if user is either admin, or whitelisted
-                checker = any([await self.executor.in_whilelist(role.id) for role in message.author.roles])
+                checker = any([await self.db.in_whilelist(role.id) for role in message.author.roles])
                 if await self.cog_check(message) or checker:
                     pass
                 else:
@@ -46,7 +46,7 @@ class AutoMod(commands.Cog):
                             return
                         except discord.errors.NotFound:
                             pass
-                    profan_count = await self.executor.profanity_counter(message.author.id)
+                    profan_count = await self.db.profanity_counter(message.author.id)
                     for word in self.filters:
                         if word in message.content.lower():
                             await message.delete()
@@ -57,18 +57,18 @@ class AutoMod(commands.Cog):
                             )
                             automod.set_thumbnail(url=message.author.display_avatar)
                             await send_to_modlog(ctx, embed=automod, configtype="autoModLogs", reason="Automod")
-                            await self.executor.update_db("profanity_count", message.author.id)
+                            await self.db.update_db("profanity_count", message.author.id)
                             if profan_count % 10 == 0 and profan_count > 0:
                                 await message.channel.send(f"Please avoid using profane words {message.author.mention}. You have been warned.")
-                                await self.executor.update_db("warn_count", message.author.id)
-                                await self.executor.insert_detailed_modlogs(message.author.id, "Warn", reason="AutoMod", moderator="None")
+                                await self.db.update_db("warn_count", message.author.id)
+                                await self.db.insert_detailed_modlogs(message.author.id, "Warn", reason="AutoMod", moderator="None")
                             if profan_count % 20 == 0 and profan_count > 0:
                                 role = discord.utils.get(message.guild.roles, name='Muted')
                                 embed = embed_blueprint()
                                 embed.description = f"**{message.author} was muted**"
                                 await message.author.add_roles(role)
                                 await send_to_modlog(ctx, embed=embed, configtype="autoModLogs", reason="Automod")
-                                await self.executor.insert_detailed_modlogs(message.author.id, "Mute", reason="AutoMod", moderator="None")
+                                await self.db.insert_detailed_modlogs(message.author.id, "Mute", reason="AutoMod", moderator="None")
                                 await asyncio.sleep(1800)
                                 await message.author.remove_roles(role)
         except (AttributeError, discord.errors.NotFound) as e:

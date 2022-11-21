@@ -14,14 +14,14 @@ class Management(commands.Cog):
 
     @commands.Cog.listener()
     async def on_ready(self):
-        self.executor = ModerationDB()
-        await self.executor.create_tables()
+        self.db = ModerationDB()
+        await self.db.create_tables()
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
         try:
             embed = embed_blueprint()
-            container = await self.executor.rank_roles_and_party_channels() # returns a tuple with two lists
+            container = await self.db.rank_roles_and_party_channels() # returns a tuple with two lists
             channels = container[1] # returns [(id,), (id,)] same for container[0]
             for role in container[0]:
                 if f"<@&{role[0]}>" in message.content and message.channel.id not in (c[0] for c in channels)\
@@ -51,7 +51,7 @@ class Management(commands.Cog):
             temp.append(chan.id)
 
         for chnls in temp:
-            await self.executor.add_party_channel(chnls)
+            await self.db.add_party_channel(chnls)
         embed.description = f"**✅ Rank mentions inside these channels will not be warned**"
         msg = await ctx.send(embed=embed)
         await asyncio.sleep(5)
@@ -78,7 +78,7 @@ class Management(commands.Cog):
                 raise commands.RoleNotFound(role_id)
             temp.append(role.id)
         for role in temp:
-            await self.executor.add_rank_role(role)
+            await self.db.add_rank_role(role)
         embed.description = f"**✅ Added rank roles to database. Rank roles mentioned outsite party channels will be warned**"
         msg = await ctx.send(embed=embed)
         await asyncio.sleep(5)

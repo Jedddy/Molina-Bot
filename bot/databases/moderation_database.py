@@ -1,10 +1,8 @@
 import aiosqlite as aiosql
 import datetime
+from .abstract_db import Base
 
-class ModerationDB:
-    db_path = "bot/databases/mlbbmembers.db"
-    def __init__(self):
-        pass
+class ModerationDB(Base):
 
     async def create_tables(self) -> None:
         """Create all the tables needed"""
@@ -45,11 +43,11 @@ class ModerationDB:
                     date TEXT
                 ); """)
 
-    async def check_if_exists(self, table, column, _id: int) -> bool:
+    async def moderation_db_check(self, user_id: int) -> bool:
         async with aiosql.connect(self.db_path) as db:
             check = await db.execute(f"""
-                SELECT * FROM {table} WHERE {column} = ?
-            """, (_id,))
+                SELECT * FROM userlogs WHERE user_id = ?
+            """, (user_id,))
             check = await check.fetchall()
             return bool(check)
 
