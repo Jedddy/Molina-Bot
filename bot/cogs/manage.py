@@ -28,8 +28,7 @@ class Management(commands.Cog):
                     and message.channel.id not in (f.id for f in message.guild.forums):
 
                     chnls = '\n'.join((f'<#{c[0]}>' for c in channels))
-                    embed.description = f"{message.author.mention}, If you want to find players to play with, Please go ahead on one of these channels:\n\
-                        {chnls}"
+                    embed.description = f"{message.author.mention}, If you want to find players to play with, Please go ahead on one of these channels:\n{chnls}"
 
                     await message.channel.send(embed=embed)
                     break

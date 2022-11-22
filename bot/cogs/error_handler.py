@@ -6,6 +6,7 @@ from utils.helper import embed_blueprint
 
 class ErrorHandler(commands.Cog):
 
+    ignored = (commands.CheckFailure, commands.CommandNotFound, commands.CommandInvokeError)
     @commands.Cog.listener()
     async def on_command_error(self, ctx: commands.Context, error):
         embed = embed_blueprint()
@@ -17,7 +18,7 @@ class ErrorHandler(commands.Cog):
             embed.description = f"```Role not found! -> <{error.argument}>```"
         elif isinstance(error, commands.ChannelNotFound):
             embed.description = f"```Channel not found! -> <{error.argument}>```"
-        elif isinstance(error, commands.CheckFailure | commands.CommandNotFound | commands.CommandInvokeError):
+        elif isinstance(error, self.ignored):
             return
         else:
             embed.description = f"```An error has occured.```"

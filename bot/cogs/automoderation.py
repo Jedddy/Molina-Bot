@@ -75,30 +75,6 @@ class AutoMod(commands.Cog):
             pass
     
     @commands.Cog.listener()
-    async def on_member_ban(self, guild, user: discord.User):
-        ctx = await self.bot.get_context(guild)
-        embed = embed_blueprint()
-        embed.description = "**Member banned**"
-        embed.add_field(
-            name="Info",
-            value=f"```yaml\nuser: {user}```"
-        )
-        embed.set_thumbnail(url=user.display_avatar)
-        await send_to_modlog(ctx, embed=embed, configtype="modLogChannel")
-
-    @commands.Cog.listener()
-    async def on_member_unban(self, guild: discord.Guild, user: discord.User):
-        ctx = await self.bot.get_context(guild)
-        embed = embed_blueprint()
-        embed.description = "**Member unbanned**"
-        embed.add_field(
-            name="Info",
-            value=f"```yaml\nuser: {user}```",
-        )
-        embed.set_thumbnail(url=user.display_avatar)
-        await send_to_modlog(ctx, embed=embed, configtype="modLogChannel")
-
-    @commands.Cog.listener()
     async def on_message_edit(self, before: discord.Message, after: discord.Message):
         ctx = await self.bot.get_context(before)
         if before.author.bot:
