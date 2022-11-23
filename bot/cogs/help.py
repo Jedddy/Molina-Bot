@@ -18,7 +18,7 @@ class Help(commands.HelpCommand):
             if hasattr(cog, "qualified_name") and cog.qualified_name not in self.hidden_cogs:
                 embed.add_field(
                     name=cog.qualified_name,
-                    value=", ".join([f"`{cm.name}`" for cm in await self.filter_commands(cmd, sort=True)]),
+                    value=", ".join([f"`{cm.name}`" for cm in await self.filter_commands(cmd, sort=True)]) or "`Hidden`",
                     inline=False
                     )
         await self.get_destination().send(embed=embed)

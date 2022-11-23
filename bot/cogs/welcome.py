@@ -11,7 +11,14 @@ class Welcome(commands.Cog):
         self.bot = bot
         self.server_id = 1031148051760427008 
         self.emoji = discord.PartialEmoji(name='✅')
-           
+    
+    async def cog_check(self, ctx: commands.Context):
+        return all((
+                ctx.author.guild_permissions.ban_members,
+                ctx.author.guild_permissions.kick_members,
+                ctx.author.guild_permissions.mute_members,
+                ))
+
     async def on_ready(self):
         pass
 
