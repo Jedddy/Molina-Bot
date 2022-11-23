@@ -1,9 +1,9 @@
 import aiosqlite as aiosql
 import datetime
-from .abstract_db import Base
 
-class ModerationDB(Base):
-
+class ModerationDB:
+    db_path = "bot/databases/mlbbmembers.db"
+    
     async def create_tables(self) -> None:
         """Create all the tables needed"""
 
