@@ -62,18 +62,6 @@ class Misc(commands.Cog):
         await ctx.message.delete()
         await update_config(ctx.guild.id, "stickiedMessages", [bot_msg.channel.id, bot_msg.id], inner=True, inner_key=str(ctx.channel.id))
 
-    @commands.command()
-    async def remindme(self, ctx: commands.Context, time: str, *, reminder: str):
-        """Will remind you on dms after your specified time."""
-        
-        rmdr = ''.join([rm for rm in reminder])
-        embed = embed_blueprint()
-        embed.description = f"**Hello!, You told me to remind you about {rmdr}!**\n**See message here:**\n{ctx.message.jump_url}"
-        time = await parse(time)
-        await ctx.send(f"Got it! Molina will remind you of \"{rmdr}\" in {time[1]}")
-        await asyncio.sleep(time[0])
-        await ctx.author.send(embed=embed)
-
     @commands.has_guild_permissions(administrator=True)
     @commands.command()
     async def prefix(self, ctx: commands.Context, pfx: str):
@@ -114,6 +102,28 @@ class Misc(commands.Cog):
 
         embed = embed_blueprint()
         embed.description = f"**Pong! ✅ {round(self.bot.latency * 1000)}ms**"
+        await ctx.send(embed=embed)
+
+    @commands.command()
+    async def remindme(self, ctx: commands.Context, time: str, *, reminder: str):
+        """Will remind you on dms after your specified time."""
+        
+        rmdr = ''.join([rm for rm in reminder])
+        embed = embed_blueprint()
+        embed.description = f"**Hello!, You told me to remind you about {rmdr}!**\n**See message here:**\n{ctx.message.jump_url}"
+        time = await parse(time)
+        await ctx.send(f"Got it! Molina will remind you of \"{rmdr}\" in {time[1]}")
+        await asyncio.sleep(time[0])
+        await ctx.author.send(embed=embed)
+    
+    @commands.command(aliases=["av"])
+    async def avatar(self, ctx: commands.Context, member: discord.Member = None):
+        """Sends a member's avatar"""
+
+        av = member or ctx.author
+        embed = embed_blueprint()
+        embed.description = f"**{av}'s avatar**"
+        embed.set_image(url=av.display_avatar.url)
         await ctx.send(embed=embed)
 
 async def setup(bot: commands.Bot):
