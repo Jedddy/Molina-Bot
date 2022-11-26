@@ -1,5 +1,4 @@
 import discord
-import asyncio
 from discord.ext import commands
 from config.config import update_config, get_config
 from utils.helper import embed_blueprint
@@ -38,7 +37,6 @@ class Welcome(commands.Cog):
 class WelcomeListener(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-        self.verified_role = 712536529469440042
         self.server_id = 1031148051760427008 
         self.emoji = discord.PartialEmoji(name='✅')
         super().__init__()
@@ -70,7 +68,7 @@ class WelcomeListener(commands.Cog):
     
     @commands.Cog.listener()
     async def on_member_update(self, before: discord.Member, after: discord.Member):
-        role = after.get_role(self.verified_role)
+        role = after.get_role(712536529469440042)
         if role:
             channel = await after.guild.get_channel(645626756295950349)
             await channel.send(f"Everyone please welcome {after} to our server!")
