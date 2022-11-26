@@ -9,9 +9,8 @@ from utils.helper import embed_blueprint
 class Welcome(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-        self.server_id = 1031148051760427008 
-        self.emoji = discord.PartialEmoji(name='✅')
-    
+        super().__init__()
+
     async def cog_check(self, ctx: commands.Context):
         return all((
                 ctx.author.guild_permissions.ban_members,
@@ -19,8 +18,30 @@ class Welcome(commands.Cog):
                 ctx.author.guild_permissions.mute_members,
                 ))
 
-    async def on_ready(self):
+    @commands.command()
+    async def setverification(self, ctx: commands.Context, role: discord.Role):
+        """Sets verification channel"""
+
+        embed = embed_blueprint()
+        embed.description = "**React here to verify**"
+        message = await ctx.send(embed=embed)
+        await update_config(ctx.guild.id, "verificationChannelID", ctx.channel.id)
+        await update_config(ctx.guild.id, "verifiedRoleID", int(role.id))
+        await update_config(ctx.guild.id, "verifyMessageID", message.id)
+        await message.add_reaction("✅")
+        
+    @commands.command()
+    async def setwelcome(self, ctx: commands.Context):
         pass
+
+
+class WelcomeListener(commands.Cog):
+    def __init__(self, bot: commands.Bot):
+        self.bot = bot
+        self.verified_role = 712536529469440042
+        self.server_id = 1031148051760427008 
+        self.emoji = discord.PartialEmoji(name='✅')
+        super().__init__()
 
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload: discord.RawReactionActionEvent):
@@ -46,33 +67,19 @@ class Welcome(commands.Cog):
             await payload.member.add_roles(role)
         except discord.HTTPException:
             pass    
+    
+    @commands.Cog.listener()
+    async def on_member_update(self, before: discord.Member, after: discord.Member):
+        role = after.get_role(self.verified_role)
+        if role:
+            channel = await after.guild.get_channel(645626756295950349)
+            await channel.send(f"Everyone please welcome {after} to our server!")
 
     @commands.Cog.listener()
     async def on_member_join(self, member):
         pass
 
-    @commands.command()
-    async def setverification(self, ctx: commands.Context, role_id):
-        """Sets verification channel"""
-
-        embed = embed_blueprint()
-        embed.description = "**React here to verify**"
-        role = discord.utils.get(ctx.guild.roles, id=int(role_id)) # Check if role exists
-        if role:
-            message = await ctx.send(embed=embed)
-            await update_config(ctx.guild.id, "verificationChannelID", ctx.channel.id)
-            await update_config(ctx.guild.id, "verifiedRoleID", int(role_id))
-            await update_config(ctx.guild.id, "verifyMessageID", message.id)
-            await message.add_reaction("✅")
-            return
-        message = await ctx.send("Please input a valid role id.")
-        await asyncio.sleep(10)
-        await message.delete()
-        
-    @commands.command()
-    async def setwelcome(self, ctx: commands.Context):
-        pass
-
 
 async def setup(bot: commands.Bot):
     await bot.add_cog(Welcome(bot))
+    await bot.add_cog(WelcomeListener(bot))
