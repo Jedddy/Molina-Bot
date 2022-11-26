@@ -68,8 +68,9 @@ class WelcomeListener(commands.Cog):
     
     @commands.Cog.listener()
     async def on_member_update(self, before: discord.Member, after: discord.Member):
-        role = after.get_role(712536529469440042)
-        if role:
+        before_role = before.get_role(712536529469440042)
+        after_role = after.get_role(712536529469440042)
+        if not before_role and after_role:
             channel = await after.guild.fetch_channel(645626756295950349)
             await channel.send(f"Everyone please welcome {after.mention} to our server!")
 
