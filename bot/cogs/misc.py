@@ -41,11 +41,15 @@ class Misc(Cog):
 
         if not message.author.bot:
             return
+            
+        guild = message.guild
+        if not guild:
+            return
 
-        channel = await get_config(message.guild.id, "stickiedMessages")
+        channel = await get_config(guild.id, "stickiedMessages")
         if not channel:
             return
-        
+
         stickied_message = channel.get(str(message.channel.id), None)
         if not stickied_message:
             return
