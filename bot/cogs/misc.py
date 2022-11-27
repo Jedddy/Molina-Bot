@@ -1,18 +1,18 @@
-import discord
 import asyncio
 from typing import Union, Optional
-from discord.ext import commands
+from discord import Member, Message, NotFound, Role, TextChannel
+from discord.ext.commands import Bot, Cog, Context, command, has_guild_permissions
 from utils.helper import embed_blueprint, parse
 from config.config import get_config, update_config, delete_config
 
 
-class Misc(commands.Cog):
-    def __init__(self, bot: commands.Bot):
+class Misc(Cog):
+    def __init__(self, bot: Bot):
         self.bot = bot
         super().__init__()
 
-    @commands.Cog.listener()
-    async def on_message(self, message: discord.Message):
+    @Cog.listener()
+    async def on_message(self, message: Message):
         # Mainly for sticky messages
 
         if message.author.id == self.bot.user.id:
@@ -32,11 +32,11 @@ class Misc(commands.Cog):
         # Update the sticky config again
             await update_config(message.guild.id, "stickiedMessages", [new_msg.channel.id, new_msg.id], inner=True, inner_key=str(new_msg.channel.id))
 
-        except discord.errors.NotFound:
+        except NotFound:
             pass
 
-    @commands.Cog.listener()
-    async def on_message_delete(self, message: discord.Message):
+    @Cog.listener()
+    async def on_message_delete(self, message: Message):
         """Also mainly for stickied messages"""
 
         if not message.author.bot:
@@ -53,18 +53,18 @@ class Misc(commands.Cog):
         if message.id == stickied_message[1]:
             await delete_config(message.guild.id, "stickiedMessages", inner_key=str(message.channel.id))
 
-    @commands.has_guild_permissions(administrator=True)
-    @commands.command()
-    async def stick(self, ctx: commands.Context, *, message: str):
+    @has_guild_permissions(administrator=True)
+    @command()
+    async def stick(self, ctx: Context, *, message: str):
         """Sticks a piece of message on the channel"""
 
         bot_msg = await ctx.send(message)
         await ctx.message.delete()
         await update_config(ctx.guild.id, "stickiedMessages", [bot_msg.channel.id, bot_msg.id], inner=True, inner_key=str(ctx.channel.id))
 
-    @commands.has_guild_permissions(administrator=True)
-    @commands.command()
-    async def prefix(self, ctx: commands.Context, pfx: str):
+    @has_guild_permissions(administrator=True)
+    @command()
+    async def prefix(self, ctx: Context, pfx: str):
         """Change default commands prefix"""
 
         embed = embed_blueprint()
@@ -72,11 +72,11 @@ class Misc(commands.Cog):
         embed.description = f"**✅ Set commands prefix to {pfx}**"
         await ctx.send(embed=embed)
 
-    @commands.has_guild_permissions(administrator=True)
-    @commands.command()
-    async def announce(self, ctx: commands.Context, keyword: Union[discord.TextChannel, str], 
-                        variant: Optional[Union[discord.Role, discord.TextChannel]] = None, 
-                        channel: Optional[discord.TextChannel] = None, *, message: str):
+    @has_guild_permissions(administrator=True)
+    @command()
+    async def announce(self, ctx: Context, keyword: Union[TextChannel, str], 
+                        variant: Optional[Union[Role, TextChannel]] = None, 
+                        channel: Optional[TextChannel] = None, *, message: str):
         """Send an announcement to a specified channel"""
 
         mention = None
@@ -84,7 +84,7 @@ class Misc(commands.Cog):
         image = ctx.message.attachments
         if image and image[0].content_type[:5] == "image":
             embed.set_image(url=image[0].url)
-        if isinstance(keyword, discord.TextChannel):
+        if isinstance(keyword, TextChannel):
             ctx = keyword
         elif isinstance(keyword, str):
             if keyword.lower() == "everyone":
@@ -96,16 +96,16 @@ class Misc(commands.Cog):
         embed.description = message
         await ctx.send(mention, embed=embed)
     
-    @commands.command()
-    async def ping(self, ctx: commands.Context):
+    @command()
+    async def ping(self, ctx: Context):
         """Sends the bot's latency"""
 
         embed = embed_blueprint()
         embed.description = f"**Pong! ✅ {round(self.bot.latency * 1000)}ms**"
         await ctx.send(embed=embed)
 
-    @commands.command()
-    async def remindme(self, ctx: commands.Context, time: str, *, reminder: str):
+    @command()
+    async def remindme(self, ctx: Context, time: str, *, reminder: str):
         """Will remind you on dms after your specified time."""
         
         rmdr = ''.join([rm for rm in reminder])
@@ -116,8 +116,8 @@ class Misc(commands.Cog):
         await asyncio.sleep(time[0])
         await ctx.author.send(embed=embed)
     
-    @commands.command(aliases=["av"])
-    async def avatar(self, ctx: commands.Context, member: discord.Member = None):
+    @command(aliases=["av"])
+    async def avatar(self, ctx: Context, member: Member = None):
         """Sends a member's avatar"""
 
         av = member or ctx.author
@@ -126,5 +126,5 @@ class Misc(commands.Cog):
         embed.set_image(url=av.display_avatar.url)
         await ctx.send(embed=embed)
 
-async def setup(bot: commands.Bot):
+async def setup(bot: Bot):
     await bot.add_cog(Misc(bot))

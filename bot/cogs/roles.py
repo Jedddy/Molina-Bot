@@ -1,20 +1,20 @@
-import discord
 import re
 import asyncio
-from discord.ext import commands
+from discord import Member, Role, colour
+from discord.ext.commands import Bot, Cog, Context, command
 from utils.helper import send_to_modlog, embed_blueprint, parse
 
 
-class Roles(commands.Cog):
-    def __init__(self, bot: commands.Bot) -> None:
+class Roles(Cog):
+    def __init__(self, bot: Bot) -> None:
         self.bot = bot
         super().__init__()
 
-    async def cog_check(self, ctx: commands.Context):
+    async def cog_check(self, ctx: Context):
         return ctx.author.guild_permissions.administrator
     
-    @commands.command()
-    async def role(self, ctx: commands.Context, member: discord.Member, role: discord.Role):
+    @command()
+    async def role(self, ctx: Context, member: Member, role: Role):
         """Adds a role to a member"""
 
         embed = embed_blueprint()
@@ -26,8 +26,8 @@ class Roles(commands.Cog):
             await send_to_modlog(ctx, embed=embed, configtype="modLogChannel", moderation=True)
         await ctx.send(embed=embed)
 
-    @commands.command()
-    async def temprole(self, ctx: commands.Context, member: discord.Member, role: discord.Role, time: str):
+    @command()
+    async def temprole(self, ctx: Context, member: Member, role: Role, time: str):
         """Adds a role to a member temporarily"""
 
         time = await parse(time)
@@ -42,8 +42,8 @@ class Roles(commands.Cog):
         await asyncio.sleep(time[0])
         await member.remove_roles(role)
 
-    @commands.command()
-    async def roles(self, ctx: commands.Context):
+    @command()
+    async def roles(self, ctx: Context):
         """Check all roles in the server"""
         
         embed = embed_blueprint()
@@ -51,8 +51,8 @@ class Roles(commands.Cog):
         embed.description += "\n".join((role.mention for role in ctx.guild.roles))
         await ctx.send(embed=embed)
 
-    @commands.command()
-    async def roleinfo(self, ctx: commands.Context, role: discord.Role):
+    @command()
+    async def roleinfo(self, ctx: Context, role: Role):
         """Views info about a role"""
 
         embed = embed_blueprint()
@@ -74,8 +74,8 @@ class Roles(commands.Cog):
             )
         await ctx.send(embed=embed)
 
-    @commands.command()
-    async def rolename(self, ctx: commands.Context, role: discord.Role, *, name: str):
+    @command()
+    async def rolename(self, ctx: Context, role: Role, *, name: str):
         """Changes the name of a role"""
         
         embed = embed_blueprint()
@@ -85,8 +85,8 @@ class Roles(commands.Cog):
         await ctx.send(embed=embed)
         await send_to_modlog(ctx, embed=embed, configtype="modLogChannel", moderation=True)
 
-    @commands.command()
-    async def rolecolor(self, ctx: commands.Context, role: discord.Role, color: str):
+    @command()
+    async def rolecolor(self, ctx: Context, role: Role, color: str):
         """Changes role color"""
         
         embed = embed_blueprint()
@@ -95,15 +95,15 @@ class Roles(commands.Cog):
         color_check = re.search(r'^#(?:[0-9a-fA-F]{3}){1,2}$', color)
         if color_check:
             past_color = role.color
-            await role.edit(color=discord.colour.parse_hex_number(color[1:])) # remove the '#' for parsing
+            await role.edit(color=colour.parse_hex_number(color[1:])) # remove the '#' for parsing
             embed.description = f"**Changed role color from {past_color} to {color}**"
         else:
             embed.description = f"**Could not read color hex.**"
         await ctx.send(embed=embed)
         await send_to_modlog(ctx, embed=embed, configtype="modLogChannel", moderation=True)
 
-    @commands.command()
-    async def addrole(self, ctx: commands.Context, *, name: str, color_hex = None):
+    @command()
+    async def addrole(self, ctx: Context, *, name: str):
         """Creates a role 
         note: color_hex must start with #, leave empty if you don't want to put in a color
         """
@@ -124,13 +124,13 @@ class Roles(commands.Cog):
             name = name[:-1]
         name = " ".join(name)
         perms = ctx.guild.default_role.permissions
-        await ctx.guild.create_role(name=name, color=discord.colour.parse_hex_number(color), permissions=perms)
+        await ctx.guild.create_role(name=name, color=colour.parse_hex_number(color), permissions=perms)
         embed.description = f"**Created role {name} ✅**"
         await ctx.send(embed=embed)
         await send_to_modlog(ctx, embed=embed, configtype="modLogChannel", moderation=True)
 
-    @commands.command()
-    async def delrole(self, ctx: commands.Context, role: discord.Role):
+    @command()
+    async def delrole(self, ctx: Context, role: Role):
         """Deletes a role"""
 
         embed = embed_blueprint()
@@ -141,5 +141,5 @@ class Roles(commands.Cog):
 
 
 
-async def setup(bot: commands.Bot):
+async def setup(bot: Bot):
     await bot.add_cog(Roles(bot))

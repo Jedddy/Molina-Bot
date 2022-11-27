@@ -1,23 +1,30 @@
 import discord
 import asyncio
-from discord.ext import commands
+from discord.ext.commands import (
+    Bot,
+    Cog,
+    Context,
+    ChannelNotFound,
+    RoleNotFound,
+    command
+    )
 from databases.moderation_database import ModerationDB
 from utils.helper import embed_blueprint
 
-class Management(commands.Cog):
-    def __init__(self, bot: commands.Bot):
+class Management(Cog):
+    def __init__(self, bot: Bot):
         self.bot = bot
         super().__init__()
 
-    async def cog_check(self, ctx: commands.Context):
+    async def cog_check(self, ctx: Context):
         return ctx.author.guild_permissions.administrator
 
-    @commands.Cog.listener()
+    @Cog.listener()
     async def on_ready(self):
         self.db = ModerationDB()
         await self.db.create_tables()
 
-    @commands.Cog.listener()
+    @Cog.listener()
     async def on_message(self, message: discord.Message):
         try:
             embed = embed_blueprint()
@@ -35,8 +42,8 @@ class Management(commands.Cog):
         except AttributeError:
             pass
 
-    @commands.command()
-    async def setpartychannels(self, ctx: commands.Context, *, channel_ids: str):
+    @command()
+    async def setpartychannels(self, ctx: Context, *, channel_ids: str):
         """Sets party channels. 
         Rank mentions in channels that are not inside the container of text channels would be warned
         """
@@ -46,7 +53,7 @@ class Management(commands.Cog):
         for channel in channel_ids.split():
             chan = discord.utils.get(ctx.guild.text_channels, id=int(channel))
             if not chan:
-                raise commands.ChannelNotFound(channel)
+                raise ChannelNotFound(channel)
             temp.append(chan.id)
 
         for chnls in temp:
@@ -56,8 +63,8 @@ class Management(commands.Cog):
         await asyncio.sleep(5)
         await msg.delete()
 
-    @commands.command()
-    async def insertrankroles(self, ctx: commands.Context, *, roles: str):
+    @command()
+    async def insertrankroles(self, ctx: Context, *, roles: str):
         """Insert rank roles.
         Rank roles mentions that aren't inside party channels will be warned
         """
@@ -74,7 +81,7 @@ class Management(commands.Cog):
         for role_id in parsed.split():
             role = ctx.guild.get_role(int(role_id))
             if not role:
-                raise commands.RoleNotFound(role_id)
+                raise RoleNotFound(role_id)
             temp.append(role.id)
         for role in temp:
             await self.db.add_rank_role(role)
@@ -84,5 +91,5 @@ class Management(commands.Cog):
         await msg.delete()
 
 
-async def setup(bot: commands.Bot):
+async def setup(bot: Bot):
     await bot.add_cog(Management(bot))

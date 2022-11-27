@@ -1,48 +1,54 @@
-import discord
-from discord.ext import commands
+from discord import (
+    HTTPException,
+    Member,
+    PartialEmoji,
+    RawReactionActionEvent,
+    Role
+)
+from discord.ext.commands import Bot, Cog, Context, command
 from config.config import update_config, get_config
 from utils.helper import embed_blueprint
 
 """TODO: Welcome messages"""
 
-class Welcome(commands.Cog):
-    def __init__(self, bot: commands.Bot):
+class Welcome(Cog):
+    def __init__(self, bot: Bot):
         self.bot = bot
         super().__init__()
 
-    async def cog_check(self, ctx: commands.Context):
+    async def cog_check(self, ctx: Context):
         return all((
                 ctx.author.guild_permissions.ban_members,
                 ctx.author.guild_permissions.kick_members,
                 ctx.author.guild_permissions.mute_members,
                 ))
 
-    @commands.command()
-    async def setverification(self, ctx: commands.Context, role: discord.Role):
+    @command()
+    async def setverification(self, ctx: Context, role: Role, *, text: str):
         """Sets verification channel"""
 
         embed = embed_blueprint()
         embed.description = "**React here to verify**"
-        message = await ctx.send(embed=embed)
+        message = await ctx.send(text, embed=embed)
         await update_config(ctx.guild.id, "verificationChannelID", ctx.channel.id)
         await update_config(ctx.guild.id, "verifiedRoleID", int(role.id))
         await update_config(ctx.guild.id, "verifyMessageID", message.id)
-        await message.add_reaction("✅")
+        await message.add_reaction("🇵🇭")
         
-    @commands.command()
-    async def setwelcome(self, ctx: commands.Context):
+    @command()
+    async def setwelcome(self, ctx: Context):
         pass
 
 
-class WelcomeListener(commands.Cog):
-    def __init__(self, bot: commands.Bot):
+class WelcomeListener(Cog):
+    def __init__(self, bot: Bot):
         self.bot = bot
         self.server_id = 1031148051760427008 
-        self.emoji = discord.PartialEmoji(name='✅')
+        self.emoji = PartialEmoji(name='✅')
         super().__init__()
 
-    @commands.Cog.listener()
-    async def on_raw_reaction_add(self, payload: discord.RawReactionActionEvent):
+    @Cog.listener()
+    async def on_raw_reaction_add(self, payload: RawReactionActionEvent):
         """Gives a role based on a reaction emoji."""
         
         self.verification_message_id = await get_config(self.server_id, "verifyMessageID")
@@ -54,31 +60,28 @@ class WelcomeListener(commands.Cog):
             return
         
         guild = self.bot.get_guild(payload.guild_id)
-        if guild is None:
-            return
-       
         role = guild.get_role(self.role_id)
-        if role is None:
+        if guild is None or role is None:
             return
-        
+
         try:
             await payload.member.add_roles(role)
-        except discord.HTTPException:
+        except HTTPException:
             pass    
     
-    @commands.Cog.listener()
-    async def on_member_update(self, before: discord.Member, after: discord.Member):
+    @Cog.listener()
+    async def on_member_update(self, before: Member, after: Member):
         before_role = before.get_role(712536529469440042)
         after_role = after.get_role(712536529469440042)
         if not before_role and after_role:
             channel = await after.guild.fetch_channel(645626756295950349)
             await channel.send(f"Everyone please welcome {after.mention} to our server!")
 
-    @commands.Cog.listener()
+    @Cog.listener()
     async def on_member_join(self, member):
         pass
 
-
-async def setup(bot: commands.Bot):
+async def setup(bot: Bot):
     await bot.add_cog(Welcome(bot))
     await bot.add_cog(WelcomeListener(bot))
+

@@ -21,7 +21,7 @@ async def update_config(server_id, key, value, inner=False, inner_key=None) -> N
             inner_cfg.update({inner_key: value})
         server.update({str(server_id): server_cfg})
         with open("bot/config/config.json", "w") as config_:
-            json.dump(server, config_)
+            json.dump(server, config_, indent=4)
             return
 
 
@@ -48,5 +48,5 @@ async def delete_config(server_id, key, inner_key=None) -> None:
                 inner.pop(inner_key)
                 server.update({str(server_id): temp})
         with open("bot/config/config.json", "w") as config_:
-            json.dump(server, config_)
+            json.dump(server, config_, indent=4)
             return

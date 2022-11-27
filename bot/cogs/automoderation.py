@@ -1,34 +1,40 @@
-import discord
 import re
 import asyncio
 import datetime
 from utils.helper import filtered_words
 from databases.moderation_database import ModerationDB
-from discord.ext import commands
+from discord import (
+    Member,
+    Message,
+    NotFound,
+    RawMemberRemoveEvent,
+    utils
+)
 from utils.helper import embed_blueprint, send_to_modlog, parse
 from config.config import get_config
+from discord.ext.commands import Bot, Cog, Context
 
 
-class AutoMod(commands.Cog):
-    def __init__(self, bot: commands.Bot):
+class AutoMod(Cog):
+    def __init__(self, bot: Bot):
         self.bot = bot
         super().__init__()
 
-    async def cog_check(self, ctx: commands.Context):
+    async def cog_check(self, ctx: Context):
         return all((
                 ctx.author.guild_permissions.ban_members,
                 ctx.author.guild_permissions.kick_members,
                 ctx.author.guild_permissions.mute_members,
                 ))
 
-    @commands.Cog.listener()
+    @Cog.listener()
     async def on_ready(self):
         self.db = ModerationDB()
         await self.db.create_tables()
         self.filters = filtered_words()
 
-    @commands.Cog.listener()
-    async def on_message(self, message: discord.Message):
+    @Cog.listener()
+    async def on_message(self, message: Message):
         ctx = await self.bot.get_context(message)
         try:
             if not await self.db.moderation_db_check(message.author.id):
@@ -44,7 +50,7 @@ class AutoMod(commands.Cog):
                         try:
                             await message.delete()
                             return
-                        except discord.errors.NotFound:
+                        except NotFound:
                             pass
                     profan_count = await self.db.profanity_counter(message.author.id)
                     for word in self.filters:
@@ -63,7 +69,7 @@ class AutoMod(commands.Cog):
                                 await self.db.update_db("warn_count", message.author.id)
                                 await self.db.insert_detailed_modlogs(message.author.id, "Warn", reason="AutoMod", moderator="None")
                             if profan_count % 20 == 0 and profan_count > 0:
-                                role = discord.utils.get(message.guild.roles, name='Muted')
+                                role = utils.get(message.guild.roles, name='Muted')
                                 embed = embed_blueprint()
                                 embed.description = f"**{message.author} was muted**"
                                 await message.author.add_roles(role)
@@ -71,11 +77,11 @@ class AutoMod(commands.Cog):
                                 await self.db.insert_detailed_modlogs(message.author.id, "Mute", reason="AutoMod", moderator="None")
                                 await asyncio.sleep(1800)
                                 await message.author.remove_roles(role)
-        except (AttributeError, discord.errors.NotFound) as e:
+        except (AttributeError, NotFound) as e:
             pass
-    
-    @commands.Cog.listener()
-    async def on_message_edit(self, before: discord.Message, after: discord.Message):
+
+    @Cog.listener()
+    async def on_message_edit(self, before: Message, after: Message):
         ctx = await self.bot.get_context(before)
         if before.author.bot:
             return
@@ -93,8 +99,8 @@ class AutoMod(commands.Cog):
         embed.set_thumbnail(url=before.author.display_avatar)
         await send_to_modlog(ctx, embed=embed, configtype="botLogChannel")
 
-    @commands.Cog.listener()
-    async def on_message_delete(self, message: discord.Message):
+    @Cog.listener()
+    async def on_message_delete(self, message: Message):
         ctx = await self.bot.get_context(message)
         if message.author.bot:
             return
@@ -107,8 +113,8 @@ class AutoMod(commands.Cog):
         embed.set_thumbnail(url=message.author.display_avatar)
         await send_to_modlog(ctx, embed=embed, configtype="botLogChannel")
 
-    @commands.Cog.listener()
-    async def on_member_join(self, member: discord.Member):
+    @Cog.listener()
+    async def on_member_join(self, member: Member):
         chnl = await get_config(member.guild.id, "botLogChannel")
         chnl = self.bot.get_channel(chnl)
         if not chnl:
@@ -126,8 +132,8 @@ class AutoMod(commands.Cog):
         )
         await chnl.send(embed=embed)
 
-    @commands.Cog.listener()
-    async def on_raw_member_remove(self, payload: discord.RawMemberRemoveEvent):
+    @Cog.listener()
+    async def on_raw_member_remove(self, payload: RawMemberRemoveEvent):
         guild = self.bot.get_guild(payload.guild_id)
         chnl = await get_config(guild.id, "botLogChannel")
         if not chnl:
@@ -138,5 +144,6 @@ class AutoMod(commands.Cog):
         embed.description = f"**{payload.user} left. | {payload.user.id}**"
         await chnl.send(embed=embed)
 
-async def setup(bot: commands.Bot):
+
+async def setup(bot: Bot):
     await bot.add_cog(AutoMod(bot))

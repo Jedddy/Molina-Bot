@@ -1,22 +1,33 @@
 import asyncio
 import logging
-from discord.ext import commands
 from utils.helper import embed_blueprint
+from discord.ext.commands import (
+    Bot,
+    Cog,
+    ChannelNotFound,
+    CheckFailure,
+    CommandNotFound,
+    CommandInvokeError,
+    Context,
+    MissingRequiredArgument,
+    MemberNotFound,
+    RoleNotFound
+)
 
 
-class ErrorHandler(commands.Cog):
+class ErrorHandler(Cog):
 
-    ignored = (commands.CheckFailure, commands.CommandNotFound, commands.CommandInvokeError)
-    @commands.Cog.listener()
-    async def on_command_error(self, ctx: commands.Context, error):
+    ignored = (CheckFailure, CommandNotFound, CommandInvokeError)
+    @Cog.listener()
+    async def on_command_error(self, ctx: Context, error):
         embed = embed_blueprint()
-        if isinstance(error, commands.MissingRequiredArgument):
+        if isinstance(error, MissingRequiredArgument):
             embed.description = f"```Missing argument! -> <{error.param.name}>```"
-        elif isinstance(error, commands.MemberNotFound):
+        elif isinstance(error, MemberNotFound):
             embed.description = f"```Member not found! -> <{error.argument}>```"
-        elif isinstance(error, commands.RoleNotFound):
+        elif isinstance(error, RoleNotFound):
             embed.description = f"```Role not found! -> <{error.argument}>```"
-        elif isinstance(error, commands.ChannelNotFound):
+        elif isinstance(error, ChannelNotFound):
             embed.description = f"```Channel not found! -> <{error.argument}>```"
         elif isinstance(error, self.ignored):
             return
@@ -29,5 +40,5 @@ class ErrorHandler(commands.Cog):
         logger.error(error)
 
 
-async def setup(bot: commands.Bot):
+async def setup(bot: Bot):
     await bot.add_cog(ErrorHandler(bot))

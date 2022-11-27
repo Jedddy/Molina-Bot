@@ -1,16 +1,15 @@
-import discord
 import random
-from discord.ext import commands
 from utils.helper import embed_blueprint
+from discord.ext.commands import Bot, Cog, Context, command
 
 
-class Fun(commands.Cog):
-    def __init__(self, bot: commands.Bot) -> None:
+class Fun(Cog):
+    def __init__(self, bot: Bot) -> None:
         self.bot = bot
         super().__init__()
 
-    @commands.command(aliases=["8ball"])
-    async def ball(self, ctx: commands.Context, question: str):
+    @command(aliases=["8ball"])
+    async def ball(self, ctx: Context, question: str):
         """Makes the bot answer your question"""
 
         answers = (
@@ -21,5 +20,5 @@ class Fun(commands.Cog):
         await ctx.send(embed=embed)
 
 
-async def setup(bot: commands.Bot):
+async def setup(bot: Bot):
     await bot.add_cog(Fun(bot))

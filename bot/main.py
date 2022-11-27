@@ -1,24 +1,24 @@
 import os
-import discord
 import logging
 import dotenv
 from config.config import get_config
-from discord.ext import commands
+from discord import Intents, Game, Message
+from discord.ext.commands import Bot
 
 dotenv.load_dotenv("bot/token.env")
 token = os.getenv("token")
 
-class Molina(commands.Bot):
+class Molina(Bot):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(
             *args,
             command_prefix="?", 
-            intents=discord.Intents.all(),
+            intents=Intents.all(),
             **kwargs
             )
         self.synced = False
 
-    async def get_prefix(self, message: discord.Message) -> str:
+    async def get_prefix(self, message: Message) -> str:
         guild = message.guild
         if hasattr(guild, "id"):
             pfx = await get_config(guild.id, "commandPrefix")
@@ -27,7 +27,7 @@ class Molina(commands.Bot):
 
     async def on_ready(self) -> None:
         await self.wait_until_ready()
-        await self.change_presence(activity=discord.Game(name="Mobile Legends: Bang Bang"))
+        await self.change_presence(activity=Game(name="Mobile Legends: Bang Bang"))
         print(f"{self.user} is ready.")
         
     async def setup_hook(self) -> None:
