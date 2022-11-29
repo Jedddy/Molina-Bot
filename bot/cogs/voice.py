@@ -54,6 +54,7 @@ class VoiceListener(Cog):
         elif before.channel and not after.channel:
             await member.remove_roles(vc_role)
 
+
 async def setup(bot: Bot):
     await bot.add_cog(Voice(bot))
     await bot.add_cog(VoiceListener(bot))
