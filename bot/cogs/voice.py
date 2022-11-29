@@ -20,22 +20,12 @@ class Voice(Cog):
         await update_config(ctx.guild.id, "inVCRole", role.id)
         await ctx.send(embed=embed)
 
-    # @has_guild_permissions(administrator=True)
-    # @command()
-    # async def makeprivatevc(self, ctx: Context, role: Role, limit: Optional[int] = None, *, name: str):
-    #     """Makes a private VC"""
+    @has_guild_permissions(administrator=True)
+    @command()
+    async def vcgenerator(self, ctx: Context, name: str):
+        """Makes a VC Generator channel"""
 
-    #     category_id = await get_config(ctx.guild.id, "vcCategory")
-    #     if not category_id:
-    #         return
-    #     category = utils.get(ctx.guild.categories, id=category_id)
-    #     if not category:
-    #         return
-    #     await ctx.guild.create_voice_channel(
-    #         name=name, 
-    #         category=category, 
-    #         user_limit=limit, 
-    #         overwrites={})
+        
 
 
 class VoiceListener(Cog):

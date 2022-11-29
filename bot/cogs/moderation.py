@@ -171,7 +171,7 @@ class Moderation(Cog):
         """
 
         embed = embed_blueprint()
-        await self.bot.fetch_user(member)
+        await self.bot.fetch_user(member.id)
         embed.title = f"**Viewing Mod Logs for {member}**"
         embed.set_thumbnail(url=member.avatar.url)
         user_logs = await self.db.view_modlogs(member.id)
