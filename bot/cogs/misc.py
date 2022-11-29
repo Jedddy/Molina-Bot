@@ -11,52 +11,6 @@ class Misc(Cog):
         self.bot = bot
         super().__init__()
 
-    @Cog.listener()
-    async def on_message(self, message: Message):
-        # Mainly for sticky messages
-
-        if message.author.id == self.bot.user.id:
-            return
-        channel = await get_config(message.guild.id, "stickiedMessages")
-        if not channel:
-            return
-        stickied_message = channel.get(str(message.channel.id), None)
-        if not stickied_message:
-            return
-        if stickied_message[0] != message.channel.id:
-            return
-        try:
-            old_msg = await message.channel.fetch_message(stickied_message[1])
-            await old_msg.delete()
-            new_msg = await message.channel.send(old_msg.content)
-        # Update the sticky config again
-            await update_config(message.guild.id, "stickiedMessages", [new_msg.channel.id, new_msg.id], inner=True, inner_key=str(new_msg.channel.id))
-
-        except NotFound:
-            pass
-
-    @Cog.listener()
-    async def on_message_delete(self, message: Message):
-        """Also mainly for stickied messages"""
-
-        if not message.author.bot:
-            return
-            
-        guild = message.guild
-        if not guild:
-            return
-
-        channel = await get_config(guild.id, "stickiedMessages")
-        if not channel:
-            return
-
-        stickied_message = channel.get(str(message.channel.id), None)
-        if not stickied_message:
-            return
-
-        if message.id == stickied_message[1]:
-            await delete_config(message.guild.id, "stickiedMessages", inner_key=str(message.channel.id))
-
     @has_guild_permissions(administrator=True)
     @command()
     async def stick(self, ctx: Context, *, message: str):
@@ -130,5 +84,60 @@ class Misc(Cog):
         embed.set_image(url=av.display_avatar.url)
         await ctx.send(embed=embed)
 
+
+class MiscListener(Cog):
+    def __init__(self, bot: Bot):
+        self.bot = bot
+        super().__init__()
+
+    @Cog.listener()
+    async def on_message(self, message: Message):
+        # Mainly for sticky messages
+
+        if message.author.id == self.bot.user.id:
+            return
+        channel = await get_config(message.guild.id, "stickiedMessages")
+        if not channel:
+            return
+        stickied_message = channel.get(str(message.channel.id), None)
+        if not stickied_message:
+            return
+        if stickied_message[0] != message.channel.id:
+            return
+        try:
+            old_msg = await message.channel.fetch_message(stickied_message[1])
+            await old_msg.delete()
+            new_msg = await message.channel.send(old_msg.content)
+        # Update the sticky config again
+            await update_config(message.guild.id, "stickiedMessages", [new_msg.channel.id, new_msg.id], inner=True, inner_key=str(new_msg.channel.id))
+
+        except NotFound:
+            pass
+
+    @Cog.listener()
+    async def on_message_delete(self, message: Message):
+        """Also mainly for stickied messages"""
+
+        if not message.author.bot:
+            return
+            
+        guild = message.guild
+        if not guild:
+            return
+
+        channel = await get_config(guild.id, "stickiedMessages")
+        if not channel:
+            return
+
+        stickied_message = channel.get(str(message.channel.id), None)
+        if not stickied_message:
+            return
+
+        if message.id == stickied_message[1]:
+            await delete_config(message.guild.id, "stickiedMessages", inner_key=str(message.channel.id))
+
+
 async def setup(bot: Bot):
     await bot.add_cog(Misc(bot))
+    await bot.add_cog(MiscListener(bot))
+

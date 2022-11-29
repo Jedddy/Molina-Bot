@@ -5,7 +5,7 @@ from typing import Mapping, Optional, List, Any
 
 
 class Help(HelpCommand):
-    hidden_cogs = ("ErrorHandler", "AutoMod", "Management", "WelcomeListener")
+    hidden_cogs = ("ErrorHandler", "AutoMod", "Management", "WelcomeListener", "VoiceListener")
 
     async def send_bot_help(self, mapping: Mapping[Optional[Cog], List[Command[Any, ..., Any]]]) -> None:
         embed = Embed(
