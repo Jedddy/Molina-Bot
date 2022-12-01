@@ -136,9 +136,9 @@ class AutoMod(Cog):
     async def on_raw_member_remove(self, payload: RawMemberRemoveEvent):
         guild = self.bot.get_guild(payload.guild_id)
         chnl = await get_config(guild.id, "botLogChannel")
+        chnl = self.bot.get_channel(chnl)
         if not chnl:
             return
-        chnl = self.bot.get_channel(chnl)
         embed = embed_blueprint()
         embed.set_thumbnail(url=payload.user.display_avatar)
         embed.description = f"**{payload.user} left. | {payload.user.id}**"
