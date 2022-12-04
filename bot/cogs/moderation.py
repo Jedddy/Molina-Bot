@@ -239,12 +239,13 @@ class Moderation(Cog):
 
         time = await parse(duration.rstrip()) # Returns a tuple with 2 items. (seconds, formatted_time)
         embed = embed_blueprint()
-        embed.description = f"**{member} has been timed out for {time[1]}.**"
+        embed.description = f"**{member} has been timed out for {time[1]}.** | {reason}"
         await member.timeout(timedelta(seconds=time[0]))
         await ctx.send(embed=embed)
         await self.db.update_db("mute_count", member.id)
         embed.set_thumbnail(url=member.display_avatar)
         await send_to_modlog(ctx, embed=embed, configtype="modLogChannel", reason=reason, moderation=True)
+        await self.db.insert_detailed_modlogs(member.id, "Timeout", reason=reason, moderator=str(ctx.author))
 
     @command()
     async def whitelist(self, ctx: Context, role: Role):
