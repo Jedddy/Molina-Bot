@@ -75,6 +75,7 @@ class AutoMod(Cog):
                                 await message.author.add_roles(role)
                                 await send_to_modlog(ctx, embed=embed, configtype="autoModLogs", reason="Automod")
                                 await self.db.insert_detailed_modlogs(message.author.id, "Mute", reason="AutoMod", moderator="None")
+                                await self.db.update_db("mute_count", message.author.id)
                                 await asyncio.sleep(1800)
                                 await message.author.remove_roles(role)
         except (AttributeError, NotFound) as e:
