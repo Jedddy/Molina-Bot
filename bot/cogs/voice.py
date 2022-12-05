@@ -34,13 +34,12 @@ class VoiceListener(Cog):
         if not vc_role:
             return
         if not before.channel and after.channel:
-            await member.add_roles(vc_role)
+            if vc_role not in member.roles:
+                await member.add_roles(vc_role)
         elif before.channel and not after.channel:
-            await member.remove_roles(vc_role)
-        for channel in member.guild.voice_channels:
-            for member in channel.members:
-                if vc_role not in member.roles:
-                    await member.add_roles(vc_role)
+            if vc_role in member.roles:
+                await member.remove_roles(vc_role)
+
 
 async def setup(bot: Bot):
     await bot.add_cog(Voice(bot))
