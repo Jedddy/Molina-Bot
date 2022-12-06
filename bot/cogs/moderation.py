@@ -1,7 +1,7 @@
 import asyncio
 from math import ceil
 from datetime import timedelta
-from discord import Forbidden, Member, Role, TextChannel, utils
+from discord import Forbidden, Member, Role, TextChannel, User, utils
 from databases.moderation_database import ModerationDB
 from utils.helper import parse, send_to_modlog, embed_blueprint
 from config.config import update_config, get_config, delete_config
@@ -164,7 +164,7 @@ class Moderation(Cog):
         await ctx.send(embed=embed)
 
     @command()
-    async def modlogs(self, ctx: Context, member: Member, log_type: str = None, page: int = 1):
+    async def modlogs(self, ctx: Context, member: User, log_type: str = None, page: int = 1):
         """Views mod logs of a member
         
         Put "-d" as type for detailed logs
@@ -173,7 +173,7 @@ class Moderation(Cog):
         embed = embed_blueprint()
         await self.bot.fetch_user(member.id)
         embed.title = f"**Viewing Mod Logs for {member}**"
-        embed.set_thumbnail(url=member.avatar.url)
+        embed.set_thumbnail(url=member.display_avatar.url)
         user_logs = await self.db.view_modlogs(member.id)
         logs, page_max = await self.db.check_detailed_modlogs(member.id, offset=(page - 1)*5) # returns (logs, lenght)
         if log_type == "-d":
