@@ -36,7 +36,10 @@ class Moderation(Cog):
         embed.set_thumbnail(url=member.avatar.url)
         warn_embed = embed_blueprint()
         warn_embed.description = f"**You have been warned on {ctx.guild.name}**\n\nReason for warn: {reason}"
-        await member.send(embed=warn_embed)
+        try:
+            await member.send(embed=warn_embed)
+        except Forbidden:
+            embed.description = "**Cannot contact member. Added warn to database anyway.**"
         await ctx.send(embed=embed)
         await send_to_modlog(ctx, embed=embed, configtype="modLogChannel", moderation=True)
         await self.db.update_db("warn_count", member.id)
