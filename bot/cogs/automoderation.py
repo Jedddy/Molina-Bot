@@ -55,14 +55,14 @@ class AutoMod(Cog):
                     profan_count = await self.db.profanity_counter(message.author.id)
                     for word in self.filters:
                         if word in message.content.lower():
-                            await message.delete()
                             automod = embed_blueprint()
                             automod.add_field(
                                 name="Info",
-                                value=f"**Message**: {message.content}\n```yaml\nauthor: {message.author}\nauthor id: {message.author.id}\nmessage id: {message.id}```"
+                                value=f"**Message**: {message.content}\n```yaml\nauthor: {message.author}\nauthor id: {message.author.id}\nmessage id: {message.id}\nword: {word}```"
                             )
                             automod.set_thumbnail(url=message.author.display_avatar)
-                            await send_to_modlog(ctx, embed=automod, configtype="autoModLogs", reason="Automod")
+                            await send_to_modlog(ctx, embed=automod, configtype="autoModLogChannel", reason="Automod")
+                            await message.delete()
                             await self.db.update_db("profanity_count", message.author.id)
                             if profan_count % 10 == 0 and profan_count > 0:
                                 await message.channel.send(f"Please avoid using profane words {message.author.mention}. You have been warned.")
@@ -73,7 +73,7 @@ class AutoMod(Cog):
                                 embed = embed_blueprint()
                                 embed.description = f"**{message.author} was muted**"
                                 await message.author.add_roles(role)
-                                await send_to_modlog(ctx, embed=embed, configtype="autoModLogs", reason="Automod")
+                                await send_to_modlog(ctx, embed=embed, configtype="autoModLogChannel", reason="Automod")
                                 await self.db.insert_detailed_modlogs(message.author.id, "Mute", reason="AutoMod", moderator="None")
                                 await self.db.update_db("mute_count", message.author.id)
                                 await asyncio.sleep(1800)
@@ -111,6 +111,9 @@ class AutoMod(Cog):
             name="Info",
             value=f"**Message**: {message.content}\n```yaml\nauthor: {message.author}\nauthor id: {message.author.id}\nmessage id: {message.id}```"
         )
+        if message.attachments:
+            image = message.attachments[0].url
+            embed.set_image(url=image)
         embed.set_thumbnail(url=message.author.display_avatar)
         await send_to_modlog(ctx, embed=embed, configtype="botLogChannel")
 
