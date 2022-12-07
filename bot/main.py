@@ -8,6 +8,7 @@ from discord.ext.commands import Bot
 dotenv.load_dotenv("bot/token.env")
 token = os.getenv("token")
 
+
 class Molina(Bot):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(
@@ -42,6 +43,7 @@ class Molina(Bot):
         for cogs in os.listdir("bot/cogs"):
             if cogs.endswith(".py"):
                 await self.load_extension(f"cogs.{cogs[:-3]}")
+
 
 molina = Molina()
 molina.run(token)
