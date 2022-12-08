@@ -37,7 +37,7 @@ class ErrorHandler(Cog):
         await asyncio.sleep(20)
         await error_message.delete()
         logger = logging.getLogger(__name__)
-        logger.error(error)
+        logger.exception(error)
 
 
 async def setup(bot: Bot):

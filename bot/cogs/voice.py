@@ -1,24 +1,6 @@
-from discord import Member, Role, VoiceState
-from utils.helper import embed_blueprint
-from config.config import update_config, get_config
-from discord.ext.commands import Bot, Cog, Context, command, has_guild_permissions
-
-
-
-class Voice(Cog):
-    def __init__(self, bot: Bot):
-        self.bot = bot
-        super().__init__()
-
-    @has_guild_permissions(administrator=True)
-    @command()
-    async def invcrole(self, ctx: Context, role: Role):
-        """Adds the in VC role to the CONFIG"""
-
-        embed = embed_blueprint()
-        embed.description = f"**Added {role} as `In VC` role**"
-        await update_config(ctx.guild.id, "inVCRole", role.id)
-        await ctx.send(embed=embed)
+from discord import Member, VoiceState
+from config.config import get_config
+from discord.ext.commands import Bot, Cog
 
 
 class VoiceListener(Cog):
@@ -42,5 +24,4 @@ class VoiceListener(Cog):
 
 
 async def setup(bot: Bot):
-    await bot.add_cog(Voice(bot))
     await bot.add_cog(VoiceListener(bot))

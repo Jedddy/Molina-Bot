@@ -3,6 +3,7 @@ import asyncio
 from discord import Member, Role, colour
 from discord.ext.commands import Bot, Cog, Context, command
 from utils.helper import send_to_modlog, embed_blueprint, parse
+from config.config import update_config
 
 
 class Roles(Cog):
@@ -139,6 +140,14 @@ class Roles(Cog):
         await ctx.send(embed=embed)
         await send_to_modlog(ctx, embed=embed, configtype="modLogChannel", moderation=True)
 
+    @command()
+    async def invcrole(self, ctx: Context, role: Role):
+        """Adds the in VC role to the CONFIG"""
+
+        embed = embed_blueprint()
+        embed.description = f"**Added {role} as `In VC` role**"
+        await update_config(ctx.guild.id, "inVCRole", role.id)
+        await ctx.send(embed=embed)
 
 
 async def setup(bot: Bot):

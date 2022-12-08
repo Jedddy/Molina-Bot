@@ -18,7 +18,7 @@ async def update_config(server_id, key, value, inner=False, inner_key=None) -> N
             if not server_cfg.get(key, None):
                 server_cfg[key] = {}
             inner_cfg = server_cfg[key]
-            inner_cfg.update({inner_key: value})
+            inner_cfg.update({str(inner_key): value})
         server.update({str(server_id): server_cfg})
         with open("bot/config/config.json", "w") as config_:
             json.dump(server, config_, indent=4)
