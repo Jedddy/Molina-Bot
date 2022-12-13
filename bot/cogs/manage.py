@@ -1,5 +1,5 @@
-import discord
 import asyncio
+from discord import Message, MessageType, utils
 from discord.ext.commands import (
     Bot,
     Cog,
@@ -10,6 +10,7 @@ from discord.ext.commands import (
     )
 from databases.moderation_database import ModerationDB
 from utils.helper import embed_blueprint
+from config.config import get_config
 
 class Management(Cog):
     def __init__(self, bot: Bot):
@@ -25,7 +26,15 @@ class Management(Cog):
         await self.db.create_tables()
 
     @Cog.listener()
-    async def on_message(self, message: discord.Message):
+    async def on_message(self, message: Message):
+
+        if message.type == MessageType.premium_guild_subscription:
+            channl = await get_config(message.guild.id, "boostChannel")
+            if not channl:
+                return
+            else:
+                channel = message.guild.get_channel(channl)
+                await channel.send(f"Thank you for boosting the server! {message.author.mention}\n Please check your perks below:")
         try:
             embed = embed_blueprint()
             container = await self.db.rank_roles_and_party_channels() # returns a tuple with two lists
@@ -51,7 +60,7 @@ class Management(Cog):
         temp = [] # Temporary container for succesful channel checks so we only add everything if we dont get an error from the for loop
         embed = embed_blueprint()
         for channel in channel_ids.split():
-            chan = discord.utils.get(ctx.guild.text_channels, id=int(channel))
+            chan = utils.get(ctx.guild.text_channels, id=int(channel))
             if not chan:
                 raise ChannelNotFound(channel)
             temp.append(chan.id)
