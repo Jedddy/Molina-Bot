@@ -90,7 +90,8 @@ class WelcomeListener(Cog):
         message = await get_config(member.guild.id, "welcomeMessage")
         channel_id = await get_config(member.guild.id, "welcomeChannelId")
         channel = member.guild.get_channel(channel_id)
-        await channel.send(message.format(member.mention) if "{}" in message else message)
+        if channel:
+            await channel.send(message.format(member.mention) if "{}" in message else message)
 
 
 async def setup(bot: Bot):
