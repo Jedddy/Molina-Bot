@@ -15,15 +15,11 @@ from config.config import get_config
 class Management(Cog):
     def __init__(self, bot: Bot):
         self.bot = bot
+        self.db = ModerationDB()
         super().__init__()
 
     async def cog_check(self, ctx: Context):
         return ctx.author.guild_permissions.administrator
-
-    @Cog.listener()
-    async def on_ready(self):
-        self.db = ModerationDB()
-        await self.db.create_tables()
 
     @Cog.listener()
     async def on_message(self, message: Message):

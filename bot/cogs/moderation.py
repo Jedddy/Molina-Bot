@@ -11,6 +11,7 @@ from discord.ext.commands import Bot, Cog, Context, command
 class Moderation(Cog):
     def __init__(self, bot: Bot) -> None:
         self.bot = bot
+        self.db = ModerationDB()
         super().__init__()
 
     async def cog_check(self, ctx: Context):
@@ -19,11 +20,6 @@ class Moderation(Cog):
                 ctx.author.guild_permissions.kick_members,
                 ctx.author.guild_permissions.mute_members,
                 ))
-        
-    @Cog.listener()
-    async def on_ready(self):
-        self.db = ModerationDB()
-        await self.db.create_tables()
     
     @command()
     async def warn(self, ctx: Context, member: Member, *, reason: str = "Not specified"):
