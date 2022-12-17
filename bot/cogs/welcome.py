@@ -81,7 +81,8 @@ class WelcomeListener(Cog):
         before_role = before.get_role(712536529469440042)
         after_role = after.get_role(712536529469440042)
         if not before_role and after_role:
-            await self.db.insert_member(after.id)
+            if not await self.db.moderation_db_check(after.id):
+                await self.db.insert_member(after.id)
             channel = await after.guild.fetch_channel(645626756295950349)
             await channel.send(f"Everyone, please welcome {after.mention} to our server!")
 
