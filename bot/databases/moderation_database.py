@@ -78,7 +78,7 @@ class ModerationDB:
             SELECT profanity_count FROM userlogs WHERE user_id = ?;
         """, (user_id,))
             count = await count.fetchone()
-        return count[0]
+        return count[0] if count else 0
 
     async def view_modlogs(self, user_id: int) -> dict[str, str]:
         """View useds mod logs"""
