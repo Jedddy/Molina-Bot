@@ -38,8 +38,10 @@ class AutoMod(Cog):
         ctx = await self.bot.get_context(message)
         try:
             if not message.author.bot:
-                # Checks if user is either admin, or whitelisted
+                if not await self.db.moderation_db_check(message.author.id):
+                    await self.db.insert_member(message.author.id)
                 checker = any([await self.db.in_whilelist(role.id) for role in message.author.roles])
+                # ^ Checks if user is either admin, or whitelisted
                 if await self.cog_check(message) or checker:
                     pass
                 else:
