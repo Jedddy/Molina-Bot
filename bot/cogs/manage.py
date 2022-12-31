@@ -24,7 +24,7 @@ class Management(Cog):
     @Cog.listener()
     async def on_message(self, message: Message):
 
-        if message.author.guild_permissions.manage_channels:
+        if message.author.bot or message.author.guild_permissions.manage_channels:
             return
 
         if message.type == MessageType.premium_guild_subscription:
