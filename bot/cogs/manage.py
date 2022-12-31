@@ -24,13 +24,16 @@ class Management(Cog):
     @Cog.listener()
     async def on_message(self, message: Message):
 
+        if message.author.guild_permissions.manage_channels:
+            return
+
         if message.type == MessageType.premium_guild_subscription:
             channl = await get_config(message.guild.id, "boostChannel")
             if not channl:
                 return
             else:
                 channel = message.guild.get_channel(channl)
-                await channel.send(f"Thank you for boosting the server! {message.author.mention}\n Please check your perks below:")
+                await channel.send(f"Thank you for boosting the server! {message.author.mention}\nPlease check your perks below:")
         try:
             embed = embed_blueprint()
             container = await self.db.rank_roles_and_party_channels() # returns a tuple with two lists
