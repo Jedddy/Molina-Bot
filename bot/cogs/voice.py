@@ -1,6 +1,7 @@
 from discord import Member, VoiceState
 from config.config import get_config
 from discord.ext.commands import Bot, Cog
+from discord import NotFound
 
 
 class VoiceListener(Cog):
@@ -15,12 +16,15 @@ class VoiceListener(Cog):
         vc_role = member.guild.get_role(vc_role)
         if not vc_role:
             return
-        if not before.channel and after.channel:
-            if vc_role not in member.roles:
-                await member.add_roles(vc_role)
-        elif before.channel and not after.channel:
-            if vc_role in member.roles:
-                await member.remove_roles(vc_role)
+        try:
+            if not before.channel and after.channel:
+                if vc_role not in member.roles:
+                    await member.add_roles(vc_role)
+            elif before.channel and not after.channel:
+                if vc_role in member.roles:
+                    await member.remove_roles(vc_role)
+        except NotFound:
+            pass
 
 
 async def setup(bot: Bot):

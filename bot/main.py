@@ -9,13 +9,15 @@ from databases.moderation_database import ModerationDB
 dotenv.load_dotenv("bot/token.env")
 token = os.getenv("token")
 
+intents = Intents.all()
+intents.dm_messages = False
 
 class Molina(Bot):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(
             *args,
             command_prefix="?",
-            intents=Intents.all(),
+            intents=intents,
             **kwargs
         )
         self.synced = False
